@@ -2,12 +2,6 @@
   (:require [clojure.set :as set]
             [clojure.spec.alpha :as spec]))
 
-
-(defn food? [x]
-  (and (keyword? x) (= "food" (namespace x))))
-(defn property? [x]
-  (and (keyword? x) (= "property" (namespace x))))
-
 ;; Recipes mainly consist of an ordered list of ingredient descriptors.
 ;; These specify one or more `properties` that the ingredient food(s) needs to satisfy.
 ;; Alternatively, they may also just list acceptable food choices.
@@ -26,6 +20,13 @@
                            :* [:any-of :property/gemüse :property/fleisch]]
                           ["Einlage" :* :property/knusprig]]})
 
+
+(defn food? [x]
+  (and (keyword? x) (= "food" (namespace x))))
+(defn property? [x]
+  (and (keyword? x) (= "property" (namespace x))))
+
+
 (spec/def ::food food?)
 (spec/def ::property property?)
 (spec/def ::food-or-property
@@ -43,6 +44,7 @@
 (spec/def :recipe/ingredients (spec/coll-of ::ingredient))
 (spec/def :recipe/name string?)
 (spec/def ::recipe (spec/keys :req [:recipe/name :recipe/ingredients]))
+
 
 ;; Meals list their ingredient foods, which may be grouped by `role`.
 ;; Ingredients are listed in the same order as in the recipe.
