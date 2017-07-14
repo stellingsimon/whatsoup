@@ -9,11 +9,12 @@
   (and (keyword? x) (= "property" (namespace x))))
 
 ;; Recipes mainly consist of an ordered list of ingredient descriptors.
-;; These specify one or more `properties` that the ingredient needs to satisfy.
+;; These specify one or more `properties` that the ingredient food(s) needs to satisfy.
 ;; Alternatively, they may also just list acceptable food choices.
 ;; Quantities are deliberately omitted for the moment.
 ;;
 ;; Here's an example:
+;;
 #_(def ex-recipe
     {:recipe/name        "Püree-Suppe"
      :recipe/ingredients [[:= :food/lauch]
@@ -43,3 +44,16 @@
 (spec/def :recipe/name string?)
 (spec/def ::recipe (spec/keys :req [:recipe/name :recipe/ingredients]))
 
+;; Meals list their ingredient foods, which may be grouped by `role`.
+;; Ingredients are listed in the same order as in the recipe.
+;;
+;; Here's an example:
+;;
+#_(def ex-out-meal
+    {:meal/name        "Püree-Suppe"
+     :meal/ingredients [["Zutat" :food/lauch]
+                        ["Zutat" :food/zwiebel]
+                        ["Zutat" :food/bouillon]
+                        ["Püreebasis" :food/kartoffel]
+                        ["Weitere Zutaten" :food/karotten :food/broccoli]
+                        ["Einlage" :food/crouton]]})
