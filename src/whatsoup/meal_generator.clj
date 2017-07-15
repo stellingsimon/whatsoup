@@ -1,7 +1,8 @@
 (ns whatsoup.meal-generator
   "Generates a meal from a recipe, satisfying its constraints on the ingredients."
   (:require [clojure.set :as set]
-            [clojure.spec.alpha :as spec]))
+            [clojure.spec.alpha :as spec]
+            [whatsoup.util :refer :all]))
 
 ;; Recipes mainly consist of an ordered list of ingredient descriptors.
 ;; These specify one or more `properties` that the ingredient food(s) needs to satisfy.
@@ -84,3 +85,32 @@
        (map #(update-in % [:constraint] normalize-constraint))
        (map-indexed #(merge {:idx %1 :role "Zutat(en)"} %2))))
 
+
+(defn properties [food-def]
+  (let [food (:food/name food-def)
+        props (:food/properties food-def)]
+    (apply merge (for [p props] {p #{food}}))))
+
+
+(defn property-catalog [food-catalog]
+  (apply merge-with set/union (map properties food-catalog)))
+
+
+(defn resolve-food
+  "maps properties to foods using the property-catalog and foods to themselves"
+  [property-catalog food-or-property]
+  (cond
+    (food? food-or-property) (hash-set food-or-property)
+    (property? food-or-property) (apply hash-set (get property-catalog food-or-property))
+    :else (throw (RuntimeException. (str "Expected a :food or :property, got: " food-or-property)))))
+
+
+(defn satisfying-foods
+  "all foods from catalog that satisfy the given conformed constraint"
+  [normalized-constraint property-catalog]
+  (let [{:keys [op elems]} normalized-constraint
+        food-sets (map #(resolve-food property-catalog %) elems)]
+    (cond
+      (= :all-of op) (apply set/intersection food-sets)
+      (= :any-of op) (apply set/union food-sets)
+      :else (throw (RuntimeException. (str "Unexpected op: " op))))))
