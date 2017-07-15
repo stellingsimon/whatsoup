@@ -114,3 +114,4 @@
       (= :all-of op) (apply set/intersection food-sets)
       (= :any-of op) (apply set/union food-sets)
       :else (throw (RuntimeException. (str "Unexpected op: " op))))))
+
