@@ -1,7 +1,8 @@
 (ns whatsoup.meal-generator-test
   (:require [clojure.spec.alpha :as spec]
             [clojure.test :refer :all]
-            [whatsoup.meal-generator :as mg :refer :all]))
+            [whatsoup.meal-generator :as mg :refer :all]
+            [whatsoup.test-util :refer :all]))
 
 
 ; TODO: (2017-07-15, sst) leverage spec to generate arbitrary recipes for us
@@ -15,6 +16,13 @@
                         ["Weitere Zutaten"
                          :* [:any-of :property/gemüse :property/fleisch]]
                         ["Einlage" :* :property/knusprig]]})
+(def ex-food-catalog
+  [{:food/name       :food/kartoffel
+    :food/properties #{:property/gemüse :property/stärkehaltig}}
+   {:food/name       :food/broccoli
+    :food/properties #{:property/gemüse}}
+   {:food/name       :food/schweinefleisch
+    :food/properties #{:property/fleisch}}])
 
 
 (deftest -normalize-constraint
@@ -36,33 +44,47 @@
 
 
 (deftest -resolve-food
-  (let [food-catalog [{:food/name       :food/zwiebel
-                       :food/properties #{:property/gemüse :property/scharf}}
-                      {:food/name       :food/broccoli
-                       :food/properties #{:property/gemüse}}
-                      {:food/name       :food/schweinefleisch
-                       :food/properties #{:properties/fleisch}}]
-        property-catalog (property-catalog food-catalog)]
+  (let [property-catalog (property-catalog ex-food-catalog)]
     (is (= #{:food/zwiebel} (resolve-food property-catalog :food/zwiebel)))
-    (is (= #{:food/zwiebel} (resolve-food property-catalog :property/scharf)))
-    (is (= #{:food/broccoli :food/zwiebel} (resolve-food property-catalog :property/gemüse)))
+    (is (= #{:food/kartoffel} (resolve-food property-catalog :property/stärkehaltig)))
+    (is (= #{:food/broccoli :food/kartoffel} (resolve-food property-catalog :property/gemüse)))
     (is (= #{} (resolve-food property-catalog :property/inexistant)))
     (is (thrown? RuntimeException (resolve-food property-catalog :something-else)))))
 
 
 (deftest -satisfying-foods
-  (let [food-catalog [{:food/name       :food/zwiebel
-                       :food/properties #{:property/gemüse :property/scharf}}
-                      {:food/name       :food/broccoli
-                       :food/properties #{:property/gemüse}}
-                      {:food/name       :food/schweinefleisch
-                       :food/properties #{:property/fleisch}}]
-        property-catalog (property-catalog food-catalog)
-        all-of-constraint {:op :all-of :elems [:property/gemüse :property/scharf]}
-        any-of-constraint {:op :any-of :elems [:property/fleisch :property/scharf]}]
-    (is (= #{:food/zwiebel} (satisfying-foods all-of-constraint property-catalog)))
-    (is (= #{:food/schweinefleisch :food/zwiebel} (satisfying-foods any-of-constraint property-catalog)))
+  (let [property-catalog (property-catalog ex-food-catalog)
+        all-of-constraint {:op :all-of :elems [:property/gemüse :property/stärkehaltig]}
+        any-of-constraint {:op :any-of :elems [:property/fleisch :property/stärkehaltig]}]
+    (is (= #{:food/kartoffel} (satisfying-foods all-of-constraint property-catalog)))
+    (is (= #{:food/schweinefleisch :food/kartoffel} (satisfying-foods any-of-constraint property-catalog)))
     (is (thrown? RuntimeException (satisfying-foods :food/zwiebel property-catalog))
         "report error on unnormalized simple constraint")
     (is (thrown? RuntimeException (satisfying-foods [:any-of :food/lauch :food/zwiebel] property-catalog))
         "report error on unnormalized combined constraint")))
+
+
+(deftest -score
+  (is (almost= 1.0 (score :food/broccoli #{} {})))
+  (is (almost= 1.0 (score :food/broccoli #{:food/lauch} {})))
+  (is (almost= 0.1 (score :food/broccoli #{:food/broccoli} {}))))
+
+
+(deftest -match-ingredient
+  (let [property-catalog (property-catalog ex-food-catalog)
+        ingredients (-> (spec/conform ::mg/recipe ex-recipe)
+                        (ingredients)
+                        (with-candidates property-catalog))
+        selected-foods #{:food/lauch}
+        puree-base (first (filter #(= "Püree-Basis" (:role %)) ingredients))
+        others (first (filter #(= "Weitere Zutaten" (:role %)) ingredients))
+        food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
+                                   [:food/schweinefleisch :food/lauch] 10.0}]
+    (is (= #{:food/kartoffel}
+           (:selected-foods (match-ingredient puree-base selected-foods {})))
+        "unambiguous selection works")
+    (is (= #{:food/schweinefleisch}
+           (:selected-foods (match-ingredient others selected-foods food-compatibility-matrix)))
+        "food-compatibility-matrix lookup works")))
+
+; TODO: deftest -match-ingredients

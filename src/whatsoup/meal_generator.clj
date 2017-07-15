@@ -63,10 +63,6 @@
                         ["Einlage" :food/crouton]]})
 
 
-;; parse (conform) recipe using spec
-;; extend recipe with algorithmic info, including properties->food mapping
-
-
 (defn normalize-constraint
   "takes a spec-conformed constraint and returns a map with only :op and :elems"
   [[constraint-type detail :as constraint']]
@@ -114,4 +110,86 @@
       (= :all-of op) (apply set/intersection food-sets)
       (= :any-of op) (apply set/union food-sets)
       :else (throw (RuntimeException. (str "Unexpected op: " op))))))
+
+
+;; basic algorithm:
+;; - compute candidates for each ingredient
+;; - remove forbidden foods from the candidates
+;; - for every mandatory food f:
+;;   - choose a var where f is assignable
+;;   - assign f to said var, remove it from candidates
+;;   - list f as used food
+;; - iterate until no assignable vars left:
+;;   - choose an assignable var to assign next
+;;   - from that var's candidates, pick a food f that's not yet used depending on some strategy
+;;   - remove the picked food from candidates, add it to assigned-foods for that var
+
+
+(defn with-candidates
+  "initializes the keys used in the computation of the food selection"
+  [ingredients property-catalog]
+  (letfn [(candidates [ingredient]
+            (satisfying-foods (:constraint ingredient) property-catalog))
+          (merge-candidates [ingredient]
+            (merge {:selected-foods  #{}
+                    :candidate-foods (candidates ingredient)} ingredient))]
+    (map merge-candidates ingredients)))
+
+
+(defn candidate-foods [ingredients] (mapcat :candidate-foods ingredients))
+(defn selected-foods [ingredients] (mapcat :selected-foods ingredients))
+
+
+(defn matchable?
+  ([ingredient food]
+   (and (matchable? ingredient)
+        (contains? (:candidate-foods ingredient) food)))
+  ([ingredient]
+   (and (empty? (:selected-foods ingredient))
+        (not (empty? (:candidate-foods ingredient))))))
+
+
+(defn unambiguous-selection? [ingredient]
+  (and (= 1 (count (:candidate-foods ingredient)))
+       (matchable? ingredient)))
+
+
+(defn select-food [ingredient food]
+  (-> ingredient
+      (update :selected-foods conj food)
+      (update :candidate-foods disj food)))
+
+
+(defn score [candidate-food selected-foods compatibility-matrix]
+  (letfn [(matrix-lookup [food-a food-b]
+            (or (get compatibility-matrix [food-a food-b])
+                (get compatibility-matrix [food-b food-a])
+                (if (= food-a food-b) 0.1 1.0)))]
+    (float (apply * (for [food selected-foods] (matrix-lookup food candidate-food))))))
+
+
+(defn select-highest-scoring-food [ingredient selected-foods compatibility-matrix]
+  (->> (:candidate-foods ingredient)
+       (sort-by #(score % selected-foods compatibility-matrix) #(> %1 %2))
+       (first)                                              ; TODO: (2017-07-15, sst) randomize if several are best-matching
+       (select-food ingredient)))
+
+
+(defn match-ingredient [ingredient selected-foods food-compatibility-matrix]
+  (if (unambiguous-selection? ingredient)
+    (select-food ingredient (first (:candidate-foods ingredient)))
+    (select-highest-scoring-food ingredient selected-foods food-compatibility-matrix)))
+
+
+(defn match-ingredients
+  "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
+  [ingredients property-catalog food-compatibility-matrix]
+  (loop [result ingredients
+         next-matchable (first (filter matchable? result))] ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
+    (if-not next-matchable
+      result
+      (let [updated-ingredients (as-> next-matchable ingredient
+                                      (match-ingredient ingredient (selected-foods result) food-compatibility-matrix)
+                                      (assoc result (:idx next-matchable) ingredient))]
+        (recur (updated-ingredients) (first (filter matchable? result))))))) ; TODO (2017-07-15, sst) DRY up.
 
