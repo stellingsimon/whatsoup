@@ -1,4 +1,5 @@
-(ns whatsoup.recipe
+(ns whatsoup.meal-generator
+  "Generates a meal from a recipe, satisfying its constraints on the ingredients."
   (:require [clojure.set :as set]
             [clojure.spec.alpha :as spec]))
 
@@ -53,9 +54,33 @@
 ;;
 #_(def ex-out-meal
     {:meal/name        "Püree-Suppe"
-     :meal/ingredients [["Zutat" :food/lauch]
-                        ["Zutat" :food/zwiebel]
-                        ["Zutat" :food/bouillon]
+     :meal/ingredients [["Zutat(en)" :food/lauch]
+                        ["Zutat(en)" :food/zwiebel]
+                        ["Zutat(en)" :food/bouillon]
                         ["Püreebasis" :food/kartoffel]
                         ["Weitere Zutaten" :food/karotten :food/broccoli]
                         ["Einlage" :food/crouton]]})
+
+
+;; parse (conform) recipe using spec
+;; extend recipe with algorithmic info, including properties->food mapping
+
+
+(defn normalize-constraint
+  "takes a spec-conformed constraint and returns a map with only :op and :elems"
+  [[constraint-type detail :as constraint']]
+  (cond
+    (= :simple constraint-type)
+    {:op    :all-of
+     :elems [(second detail)]}
+
+    (= :combined constraint-type)
+    {:op    (:op detail)
+     :elems (into [] (map second (concat [(:first detail)] (:rest detail))))}))
+
+
+(defn ingredients [recipe]
+  (->> (:recipe/ingredients recipe)
+       (map #(update-in % [:constraint] normalize-constraint))
+       (map-indexed #(merge {:idx %1 :role "Zutat(en)"} %2))))
+
