@@ -1,0 +1,8 @@
+{:food-catalog              [{:food/name       :food/kartoffel
+                              :food/properties #{:property/gemüse :property/stärkehaltig}}
+                             {:food/name       :food/broccoli
+                              :food/properties #{:property/gemüse}}
+                             {:food/name       :food/schweinefleisch
+                              :food/properties #{:property/fleisch}}]
+ :food-compatibility-matrix {[:food/broccoli :food/lauch]        0.5
+                             [:food/lauch :food/schweinefleisch] 5.0}}

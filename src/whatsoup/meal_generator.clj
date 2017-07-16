@@ -5,6 +5,7 @@
             [whatsoup.food-kb :as kb]
             [whatsoup.util :refer :all]))
 
+
 ;; Recipes mainly consist of an ordered list of ingredient descriptors.
 ;; These specify one or more `properties` that the ingredient food(s) needs to satisfy.
 ;; Alternatively, they may also just list acceptable food choices.
@@ -13,17 +14,11 @@
 ;; For an example, refer to the ns meal-generator-test.
 
 
-
-(spec/def ::food kb/food?)
-(spec/def ::property kb/property?)
-(spec/def ::food-or-property
-  (spec/or :food ::food
-           :property ::property))
 (spec/def ::constraint
-  (spec/or :simple ::food-or-property
+  (spec/or :simple ::kb/food-or-property
            :combined (spec/cat :op #(contains? #{:all-of :any-of} %)
-                               :first ::food-or-property
-                               :rest (spec/+ ::food-or-property))))
+                               :first ::kb/food-or-property
+                               :rest (spec/+ ::kb/food-or-property))))
 (spec/def ::ingredient
   (spec/cat :role (spec/? string?)
             :quantifier #(contains? #{:= :*} %)
@@ -154,7 +149,11 @@
     ingredients))
 
 
-(defn meal [kb name ingredients]
-  (let [resulting-recipe (match-ingredients kb ingredients)]
+(defn meal [kb recipe]
+  (let [name (:recipe/name recipe)
+        ingredients (->> (spec/conform ::recipe recipe)
+                         (ingredients)
+                         (with-candidates kb))
+        resulting-recipe (match-ingredients kb ingredients)]
     {:meal/name        name
      :meal/ingredients (mapv #(into [] (concat [(:role %)] (:selected-foods %))) resulting-recipe)}))

@@ -18,6 +18,14 @@
                         ["Weitere Zutaten"
                          :* [:any-of :property/gemüse :property/fleisch]]
                         ["Einlage" :* :property/knusprig]]})
+(def ex-meal
+  {:meal/name        "Püree-Suppe"
+   :meal/ingredients [["Zutat(en)" :food/lauch]
+                      ["Zutat(en)" :food/zwiebel]
+                      ["Zutat(en)" :food/bouillon]
+                      ["Püreebasis" :food/kartoffel]
+                      ["Weitere Zutaten" :food/schweinefleisch]
+                      ["Einlage"]]})
 
 
 (deftest -normalize-constraint
@@ -83,17 +91,7 @@
 
 
 (deftest -meal
-  (let [ingredients (->> (spec/conform ::mg/recipe ex-recipe)
-                         (ingredients)
-                         (with-candidates test-kb))
-        selected-foods #{:food/lauch}
+  (let [selected-foods #{:food/lauch}
         food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
                                    [:food/lauch :food/schweinefleisch] 5.0}]
-    (is (= {:meal/name        "Püree-Suppe"
-            :meal/ingredients [["Zutat(en)" :food/lauch]
-                               ["Zutat(en)" :food/zwiebel]
-                               ["Zutat(en)" :food/bouillon]
-                               ["Püreebasis" :food/kartoffel]
-                               ["Weitere Zutaten" :food/schweinefleisch]
-                               ["Einlage"]]}
-           (meal test-kb (:recipe/name ex-recipe) ingredients)))))
+    (is (= ex-meal (meal test-kb ex-recipe)))))

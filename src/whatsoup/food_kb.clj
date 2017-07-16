@@ -2,6 +2,7 @@
   "exposes a knowledge base about food and its properties"
   (:require [clojure.edn :as edn]
             [clojure.set :as set]
+            [clojure.spec.alpha :as spec]
             [com.stuartsierra.component :as component]))
 
 
@@ -9,7 +10,14 @@
 (defn property? [x] (and (keyword? x) (= "property" (namespace x))))
 
 
-(defn properties [food-def]
+(spec/def ::food food?)
+(spec/def ::property property?)
+(spec/def ::food-or-property
+  (spec/or :food ::food
+           :property ::property))
+
+
+(defn- properties [food-def]
   (let [food (:food/name food-def)
         props (:food/properties food-def)]
     (apply merge (for [p props] {p #{food}}))))
@@ -30,7 +38,7 @@
 (defn create-food-kb [config-file]
   (let [config (-> (slurp config-file)
                    (edn/read-string))]
-    (map->FoodKnowledgeBase config)))
+    (component/using (map->FoodKnowledgeBase config) [])))
 
 
 (defn resolve-food
@@ -43,6 +51,7 @@
 
 
 (defn score [kb candidate-food selected-foods]
+  "computes a numerical value reflecting how well the candidate-food fits the previously selected-foods"
   (letfn [(matrix-lookup [food-a food-b]
             (or (get (:food-compatibility-matrix kb) [food-a food-b])
                 (get (:food-compatibility-matrix kb) [food-b food-a])
