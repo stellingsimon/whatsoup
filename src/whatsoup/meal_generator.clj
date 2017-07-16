@@ -182,3 +182,8 @@
            property-catalog
            food-compatibility-matrix)
     ingredients))
+
+(defn meal [name ingredients property-catalog food-compatibility-matrix]
+  (let [resulting-recipe (match-ingredients ingredients property-catalog food-compatibility-matrix)]
+    {:meal/name        name
+     :meal/ingredients (mapv #(into [] (concat [(:role %)] (:selected-foods %))) resulting-recipe)}))

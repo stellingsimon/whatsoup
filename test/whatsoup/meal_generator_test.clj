@@ -11,7 +11,7 @@
    :recipe/ingredients [[:= :food/lauch]
                         [:= :food/zwiebel]
                         [:= :food/bouillon]
-                        ["Püree-Basis"
+                        ["Püreebasis"
                          := [:all-of :property/gemüse :property/stärkehaltig]]
                         ["Weitere Zutaten"
                          :* [:any-of :property/gemüse :property/fleisch]]
@@ -76,7 +76,7 @@
                         (ingredients)
                         (with-candidates property-catalog))
         selected-foods #{:food/lauch}
-        puree-base (first (filter #(= "Püree-Basis" (:role %)) ingredients))
+        puree-base (first (filter #(= "Püreebasis" (:role %)) ingredients))
         others (first (filter #(= "Weitere Zutaten" (:role %)) ingredients))
         food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
                                    [:food/lauch :food/schweinefleisch] 5.0}]
@@ -103,3 +103,24 @@
             #{:food/schweinefleisch}
             #{}]                                            ; no match for :property/knusprig
            (map :selected-foods (match-ingredients ingredients property-catalog food-compatibility-matrix))))))
+
+
+(deftest -meal
+  (let [property-catalog (property-catalog ex-food-catalog)
+        ingredients (-> (spec/conform ::mg/recipe ex-recipe)
+                        (ingredients)
+                        (with-candidates property-catalog))
+        selected-foods #{:food/lauch}
+        food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
+                                   [:food/lauch :food/schweinefleisch] 5.0}]
+    (is (= {:meal/name        "Püree-Suppe"
+            :meal/ingredients [["Zutat(en)" :food/lauch]
+                               ["Zutat(en)" :food/zwiebel]
+                               ["Zutat(en)" :food/bouillon]
+                               ["Püreebasis" :food/kartoffel]
+                               ["Weitere Zutaten" :food/schweinefleisch]
+                               ["Einlage"]]}
+           (meal (:recipe/name ex-recipe)
+                 ingredients
+                 property-catalog
+                 food-compatibility-matrix)))))
