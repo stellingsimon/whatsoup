@@ -3,7 +3,8 @@
   :url "https://github.com/stellingsimon/whatsoup"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha17"]]
+  :dependencies [[com.stuartsierra/component "0.3.2"]
+                 [org.clojure/clojure "1.9.0-alpha17"]]
   :main ^:skip-aot whatsoup.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

@@ -2,6 +2,7 @@
   "Generates a meal from a recipe, satisfying its constraints on the ingredients."
   (:require [clojure.set :as set]
             [clojure.spec.alpha :as spec]
+            [whatsoup.food-kb :as kb]
             [whatsoup.util :refer :all]))
 
 ;; Recipes mainly consist of an ordered list of ingredient descriptors.
@@ -12,12 +13,9 @@
 ;; For an example, refer to the ns meal-generator-test.
 
 
-(defn food? [x] (and (keyword? x) (= "food" (namespace x))))
-(defn property? [x] (and (keyword? x) (= "property" (namespace x))))
 
-
-(spec/def ::food food?)
-(spec/def ::property property?)
+(spec/def ::food kb/food?)
+(spec/def ::property kb/property?)
 (spec/def ::food-or-property
   (spec/or :food ::food
            :property ::property))
@@ -69,36 +67,6 @@
        (map-indexed #(merge {:idx %1 :role "Zutat(en)"} %2))))
 
 
-(defn properties [food-def]
-  (let [food (:food/name food-def)
-        props (:food/properties food-def)]
-    (apply merge (for [p props] {p #{food}}))))
-
-
-(defn property-catalog [food-catalog]
-  (apply merge-with set/union (map properties food-catalog)))
-
-
-(defn resolve-food
-  "maps properties to foods using the property-catalog and foods to themselves"
-  [property-catalog food-or-property]
-  (cond
-    (food? food-or-property) (hash-set food-or-property)
-    (property? food-or-property) (apply hash-set (get property-catalog food-or-property))
-    :else (throw (RuntimeException. (str "Expected a :food or :property, got: " food-or-property)))))
-
-
-(defn satisfying-foods
-  "all foods from catalog that satisfy the given conformed constraint"
-  [normalized-constraint property-catalog]
-  (let [{:keys [op elems]} normalized-constraint
-        food-sets (map #(resolve-food property-catalog %) elems)]
-    (cond
-      (= :all-of op) (apply set/intersection food-sets)
-      (= :any-of op) (apply set/union food-sets)
-      :else (throw (RuntimeException. (str "Unexpected op: " op))))))
-
-
 ;; basic algorithm:
 ;; - compute candidates for each ingredient
 ;; - remove forbidden foods from the candidates
@@ -112,11 +80,22 @@
 ;;   - remove the picked food from candidates, add it to assigned-foods for that var
 
 
+(defn satisfying-foods
+  "all foods from catalog that satisfy the given conformed constraint"
+  [kb normalized-constraint]
+  (let [{:keys [op elems]} normalized-constraint
+        food-sets (map #(kb/resolve-food kb %) elems)]
+    (cond
+      (= :all-of op) (apply set/intersection food-sets)
+      (= :any-of op) (apply set/union food-sets)
+      :else (throw (RuntimeException. (str "Unexpected op: " op))))))
+
+
 (defn with-candidates
   "initializes the keys used in the computation of the food selection"
-  [ingredients property-catalog]
+  [kb ingredients]
   (letfn [(candidates [ingredient]
-            (satisfying-foods (:constraint ingredient) property-catalog))
+            (satisfying-foods kb (:constraint ingredient)))
           (merge-candidates [ingredient]
             (merge {:selected-foods  #{}
                     :candidate-foods (candidates ingredient)} ingredient))]
@@ -147,25 +126,17 @@
       (update :candidate-foods disj food)))
 
 
-(defn score [candidate-food selected-foods compatibility-matrix]
-  (letfn [(matrix-lookup [food-a food-b]
-            (or (get compatibility-matrix [food-a food-b])
-                (get compatibility-matrix [food-b food-a])
-                (if (= food-a food-b) 0.1 1.0)))]
-    (float (apply * (for [food selected-foods] (matrix-lookup food candidate-food))))))
-
-
-(defn select-highest-scoring-food [ingredient selected-foods compatibility-matrix]
+(defn select-highest-scoring-food [kb ingredient selected-foods]
   (->> (:candidate-foods ingredient)
-       (sort-by #(score % selected-foods compatibility-matrix) #(> %1 %2))
+       (sort-by #(kb/score kb % selected-foods) #(> %1 %2))
        (first)                                              ; TODO: (2017-07-15, sst) randomize if several are best-matching
        (select-food ingredient)))
 
 
-(defn match-ingredient [ingredient selected-foods food-compatibility-matrix]
+(defn match-ingredient [kb ingredient selected-foods]
   (if (unambiguous-selection? ingredient)
     (select-food ingredient (first (:candidate-foods ingredient)))
-    (select-highest-scoring-food ingredient selected-foods food-compatibility-matrix)))
+    (select-highest-scoring-food kb ingredient selected-foods)))
 
 
 (defn next-matchable [ingredients]
@@ -174,16 +145,16 @@
 
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
-  [ingredients property-catalog food-compatibility-matrix]
+  [kb ingredients]
   (if-let [next-match (next-matchable ingredients)]
-    (recur (as-> next-match ingredient
-                 (match-ingredient ingredient (selected-foods ingredients) food-compatibility-matrix)
-                 (assoc ingredients (:idx next-match) ingredient))
-           property-catalog
-           food-compatibility-matrix)
+    (recur kb
+           (as-> next-match ingredient
+                 (match-ingredient kb ingredient (selected-foods ingredients))
+                 (assoc ingredients (:idx next-match) ingredient)))
     ingredients))
 
-(defn meal [name ingredients property-catalog food-compatibility-matrix]
-  (let [resulting-recipe (match-ingredients ingredients property-catalog food-compatibility-matrix)]
+
+(defn meal [kb name ingredients]
+  (let [resulting-recipe (match-ingredients kb ingredients)]
     {:meal/name        name
      :meal/ingredients (mapv #(into [] (concat [(:role %)] (:selected-foods %))) resulting-recipe)}))
