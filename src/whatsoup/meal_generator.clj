@@ -9,24 +9,11 @@
 ;; Alternatively, they may also just list acceptable food choices.
 ;; Quantities are deliberately omitted for the moment.
 ;;
-;; Here's an example:
-;;
-#_(def ex-recipe
-    {:recipe/name        "Püree-Suppe"
-     :recipe/ingredients [[:= :food/lauch]
-                          [:= :food/zwiebel]
-                          [:= :food/bouillon]
-                          ["Püree-Basis"
-                           := [:all-of :property/gemüse :property/stärkehaltig]]
-                          ["Weitere Zutaten"
-                           :* [:any-of :property/gemüse :property/fleisch]]
-                          ["Einlage" :* :property/knusprig]]})
+;; For an example, refer to the ns meal-generator-test.
 
 
-(defn food? [x]
-  (and (keyword? x) (= "food" (namespace x))))
-(defn property? [x]
-  (and (keyword? x) (= "property" (namespace x))))
+(defn food? [x] (and (keyword? x) (= "food" (namespace x))))
+(defn property? [x] (and (keyword? x) (= "property" (namespace x))))
 
 
 (spec/def ::food food?)
@@ -133,7 +120,7 @@
           (merge-candidates [ingredient]
             (merge {:selected-foods  #{}
                     :candidate-foods (candidates ingredient)} ingredient))]
-    (map merge-candidates ingredients)))
+    (mapv merge-candidates ingredients)))
 
 
 (defn candidate-foods [ingredients] (mapcat :candidate-foods ingredients))
@@ -181,15 +168,17 @@
     (select-highest-scoring-food ingredient selected-foods food-compatibility-matrix)))
 
 
+(defn next-matchable [ingredients]
+  (first (filter matchable? ingredients)))                  ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
+
+
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
   [ingredients property-catalog food-compatibility-matrix]
-  (loop [result ingredients
-         next-matchable (first (filter matchable? result))] ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
-    (if-not next-matchable
-      result
-      (let [updated-ingredients (as-> next-matchable ingredient
-                                      (match-ingredient ingredient (selected-foods result) food-compatibility-matrix)
-                                      (assoc result (:idx next-matchable) ingredient))]
-        (recur (updated-ingredients) (first (filter matchable? result))))))) ; TODO (2017-07-15, sst) DRY up.
-
+  (if-let [next-match (next-matchable ingredients)]
+    (recur (as-> next-match ingredient
+                 (match-ingredient ingredient (selected-foods ingredients) food-compatibility-matrix)
+                 (assoc ingredients (:idx next-match) ingredient))
+           property-catalog
+           food-compatibility-matrix)
+    ingredients))

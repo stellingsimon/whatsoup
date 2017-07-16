@@ -79,7 +79,7 @@
         puree-base (first (filter #(= "Püree-Basis" (:role %)) ingredients))
         others (first (filter #(= "Weitere Zutaten" (:role %)) ingredients))
         food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
-                                   [:food/schweinefleisch :food/lauch] 10.0}]
+                                   [:food/lauch :food/schweinefleisch] 5.0}]
     (is (= #{:food/kartoffel}
            (:selected-foods (match-ingredient puree-base selected-foods {})))
         "unambiguous selection works")
@@ -87,4 +87,19 @@
            (:selected-foods (match-ingredient others selected-foods food-compatibility-matrix)))
         "food-compatibility-matrix lookup works")))
 
-; TODO: deftest -match-ingredients
+
+(deftest -match-ingredients
+  (let [property-catalog (property-catalog ex-food-catalog)
+        ingredients (-> (spec/conform ::mg/recipe ex-recipe)
+                        (ingredients)
+                        (with-candidates property-catalog))
+        selected-foods #{:food/lauch}
+        food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
+                                   [:food/lauch :food/schweinefleisch] 5.0}]
+    (is (= [#{:food/lauch}
+            #{:food/zwiebel}
+            #{:food/bouillon}
+            #{:food/kartoffel}
+            #{:food/schweinefleisch}
+            #{}]                                            ; no match for :property/knusprig
+           (map :selected-foods (match-ingredients ingredients property-catalog food-compatibility-matrix))))))
