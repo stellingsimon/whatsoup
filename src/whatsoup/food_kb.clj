@@ -32,13 +32,14 @@
           (assoc :food-catalog food-catalog)
           (assoc :property-catalog
                  (apply merge-with set/union (map properties food-catalog)))
-          (assoc :food-compatibility-matrix food-compatibility-matrix)))))
+          (assoc :food-compatibility-matrix food-compatibility-matrix)
+          (dissoc :config)))))
 
 
 (defn create-food-kb [config-file]
   (let [config (-> (slurp config-file)
                    (edn/read-string))]
-    (component/using (map->FoodKnowledgeBase config) [])))
+    (component/using (->FoodKnowledgeBase config) [])))
 
 
 (defn resolve-food
