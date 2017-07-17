@@ -6,3 +6,7 @@ Features to Implement
 
 Open Questions
 ==============
+
+There are at least 4 variants of the concept `ingredients` with slightly different data layouts:
+recipe's ingredients, recipe's ingredients after (spec/conform), ingredients with the added :role, :candidate-foods and :selected-foods and meal ingredients.
+They all go under the same name, which is confusing to say the least. How to distinguish them?
