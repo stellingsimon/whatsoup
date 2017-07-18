@@ -6,6 +6,7 @@
   :dependencies [[compojure "1.6.0"]
                  [com.stuartsierra/component "0.3.2"]
                  [hiccup "1.0.5"]
+                 [lib-noir "0.9.9"]
                  [org.clojure/clojure "1.9.0-alpha17"]
                  [ring/ring-defaults "0.3.0"]]
   :main ^:skip-aot whatsoup.core

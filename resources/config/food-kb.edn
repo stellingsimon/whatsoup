@@ -2,6 +2,8 @@
                               :food/properties #{:property/gemüse :property/stärkehaltig}}
                              {:food/name       :food/broccoli
                               :food/properties #{:property/gemüse}}
+                             {:food/name       :food/tomate
+                              :food/properties #{:property/gemüse :property/stärkehaltig}}
                              {:food/name       :food/schweinefleisch
                               :food/properties #{:property/fleisch}}]
  :food-compatibility-matrix {[:food/broccoli :food/lauch]        0.5

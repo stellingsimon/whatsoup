@@ -18,7 +18,7 @@
      [:body
       [:div#header
        [:div#app-icon
-        [:a {:href "/"} [:img {:src "img/whatsoup.png" :alt "Whatsoup?"}]]]
+        [:img {:src "img/whatsoup.png" :alt "Whatsoup?"}]]
        (into [] (concat [:h1] title))
        [:hr]]
       [:div#content
@@ -31,38 +31,57 @@
     (map #(str/capitalize (name %)) foods)))
 
 
+(defn render-action
+  ([action icon]
+    (render-action action icon nil))
+  ([action icon idx]
+   [:a {:href (str "/" (name action) (when idx (str "?ingr=" idx)))}
+    [(keyword (str "i.fa.fa-" icon))]]))
+
+
+(defn zero-to-many-constraint [ingredient]
+  (= :* (:quantifier ingredient)))
+
+
+(defmulti ingredient-action
+          "renders the action icon iff applicable"
+          (fn [action ingredient] action))
+(defmethod ingredient-action :new [_ ingredient]
+  (when (not (empty? (:candidate-foods ingredient)))
+    (render-action :new "refresh" (:idx ingredient))))
+(defmethod ingredient-action :add [_ ingredient]
+  (when (and (not (empty? (:candidate-foods ingredient)))
+             (zero-to-many-constraint ingredient))
+    (render-action :add "plus" (:idx ingredient))))
+(defmethod ingredient-action :remove [_ ingredient]
+  (when (and (zero-to-many-constraint ingredient)
+             (not (empty? (:selected-foods ingredient))))
+    (render-action :remove "minus" (:idx ingredient))))
+
+
 (defn render-recipe-table [ingredients]
-  (let [contents (map #(vector (:role %) (:selected-foods %) (count (:candidate-foods %))) ingredients)]
-    [:table#meal-ingredients
+  [:table#meal-ingredients
+   [:tr
+    [:th ""]
+    [:th "Zutaten"]
+    [:th [:a {:href "/"} [:i.fa.fa-refresh]]]]
+   (for [{:keys [role selected-foods] :as ingredient} ingredients]
      [:tr
-      [:th ""]
-      [:th "Zutaten"]
-      [:th [:a {:href "/"} [:i.fa.fa-refresh]]]]
-     (for [[role foods candidate-count] contents]
-       [:tr
-        [:td role]
-        [:td (str/join ", " (render-foods foods))]
-        [:td
-         (when (> candidate-count 1) [:a {:href "/"} [:i.fa.fa-refresh]])
-         (when (> (count foods) 1) [:a {:href "/"} [:i.fa.fa-remove]])
-         (when (pos? candidate-count) [:a {:href "/"} [:i.fa.fa-plus]])]])]))
+      [:td role]
+      [:td (str/join ", " (render-foods selected-foods))]
+      [:td
+       (ingredient-action :new ingredient)
+       (ingredient-action :remove ingredient)
+       (ingredient-action :add ingredient)]])])
 
 
 ; TODO: (2017-07-18, sst) don't pass system here!
-(defn handle-meal [system]
-  (let [ex-recipe {:recipe/name        "Püree-Suppe"
-                   :recipe/ingredients [[:= :food/lauch]
-                                        [:= :food/zwiebel]
-                                        [:= :food/bouillon]
-                                        ["Püreebasis"
-                                         := [:all-of :property/gemüse :property/stärkehaltig]]
-                                        ["Weitere Zutaten"
-                                         :* [:any-of :property/gemüse :property/fleisch]]
-                                        ["Einlage" :* :property/knusprig]]}
-        matched-ingredients (->> (spec/conform ::meal-generator/recipe ex-recipe)
+; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
+(defn handle-meal [system recipe]
+  (let [matched-ingredients (->> (spec/conform ::meal-generator/recipe recipe)
                                  (meal-generator/ingredients)
                                  (meal-generator/with-candidates (:food-kb system))
                                  (meal-generator/match-ingredients (:food-kb system)))]
     (render-page
-      [(:recipe/name ex-recipe) [:a {:href "/"} [:i.fa.fa-refresh]]]
+      [(:recipe/name recipe) (render-action :new "refresh")]
       (render-recipe-table matched-ingredients))))
