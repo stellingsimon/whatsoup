@@ -59,7 +59,7 @@
 (defn ingredients [recipe]
   (->> (:recipe/ingredients recipe)
        (map #(update-in % [:constraint] normalize-constraint))
-       (map-indexed #(merge {:idx %1 :role "Zutat(en)"} %2))))
+       (map-indexed #(merge {:idx %1 :role ""} %2))))
 
 
 ;; basic algorithm:
@@ -83,7 +83,7 @@
     (cond
       (= :all-of op) (apply set/intersection food-sets)
       (= :any-of op) (apply set/union food-sets)
-      :else (throw (RuntimeException. (str "Unexpected op: " op))))))
+      :else (throw (RuntimeException. (str "Unexpected op: " op " in constraint: " normalized-constraint))))))
 
 
 (defn with-candidates

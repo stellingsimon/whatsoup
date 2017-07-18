@@ -1,0 +1,71 @@
+body {
+    background-color: #c7de33;
+    font-family: "Arial";
+}
+
+#header {
+    margin: 3em 0 1em 0;
+    text-align: center;
+}
+
+h1 {
+    text-align: center;
+}
+
+#app-icon {
+    display: block;
+    padding: auto;
+    margin-bottom: 3em;
+}
+
+hr {
+    width: 40%;
+    background-color: black;
+    height: 1px;
+    border: none;
+    margin-bottom: 2em;
+}
+
+#meal-ingredients {
+    margin: auto;
+}
+
+#meal-ingredients tr td:first-child {
+    font-weight: bold;
+    text-align: right;
+    padding-left: 2em;
+}
+
+#meal-ingredients tr td:last-child {
+    padding-right: 2em;
+}
+
+#meal-ingredients tr:hover {
+    background-color: #e5ff3b;
+}
+
+#meal-ingredients th {
+    text-align: left;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td, th {
+    padding: 0.5em;
+    font-size: large;
+    /*border: 1px solid black;*/
+}
+
+i {
+    padding: 0.2em 0.35em;
+}
+
+a, a:link, a:visited {
+    color: black;
+}
+
+a:hover {
+    color: #de4a33;
+}

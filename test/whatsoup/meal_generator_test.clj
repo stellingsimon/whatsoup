@@ -20,9 +20,9 @@
                         ["Einlage" :* :property/knusprig]]})
 (def ex-meal
   {:meal/name        "Püree-Suppe"
-   :meal/ingredients [["Zutat(en)" :food/lauch]
-                      ["Zutat(en)" :food/zwiebel]
-                      ["Zutat(en)" :food/bouillon]
+   :meal/ingredients [["" :food/lauch]
+                      ["" :food/zwiebel]
+                      ["" :food/bouillon]
                       ["Püreebasis" :food/kartoffel]
                       ["Weitere Zutaten" :food/schweinefleisch]
                       ["Einlage"]]})

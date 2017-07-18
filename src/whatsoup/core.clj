@@ -1,12 +1,12 @@
 (ns whatsoup.core
-  (:require [clojure.pprint :refer [pprint]]
-            [com.stuartsierra.component :as component]
+  (:require [com.stuartsierra.component :as component]
             [compojure.core :refer :all]
+            [compojure.route :as route]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [whatsoup.food-kb :as kb]
-            [whatsoup.meal-generator :as meal-generator])
-  (:import (java.io StringWriter)))
+            [whatsoup.handler :as handler]
+            [whatsoup.meal-generator :as meal-generator]))
 
 
 (defn production-system [config-file]
@@ -25,26 +25,12 @@
   (alter-var-root #'system component/start-system))
 
 
-(defn puree-soup-handler []
-  (let [recipe {:recipe/name        "Püree-Suppe"
-                :recipe/ingredients [[:= :food/lauch]
-                                     [:= :food/zwiebel]
-                                     [:= :food/bouillon]
-                                     ["Püreebasis"
-                                      := [:all-of :property/gemüse :property/stärkehaltig]]
-                                     ["Weitere Zutaten"
-                                      :* [:any-of :property/gemüse :property/fleisch]]
-                                     ["Einlage" :* :property/knusprig]]}]
-    (let [s (StringWriter.)]
-      (binding [*out* s]
-        (pprint (meal-generator/meal (:food-kb system) recipe)))
-      (str "<pre>" (.toString s) "</pre>"))))
+; TODO: (2017-07-18, sst) As soon as the namespaces are reloaded, the system is reset. How to fix that properly?
+(ring-init)
 
 
 (defroutes app-routes
-           (GET "/" [] "Hello World")
-           (GET "/puree-soup" [] (puree-soup-handler))
+           (GET "/" [] (handler/handle-meal system))
+           (GET "/puree-soup" [] (handler/handle-meal system))
            (route/not-found "Not Found"))
-
-(def app
-  (wrap-defaults app-routes site-defaults))
+(def app (wrap-defaults app-routes site-defaults))

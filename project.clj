@@ -7,7 +7,7 @@
                  [com.stuartsierra/component "0.3.2"]
                  [hiccup "1.0.5"]
                  [org.clojure/clojure "1.9.0-alpha17"]
-                 [ring/ring-defaults "0.2.1"]]
+                 [ring/ring-defaults "0.3.0"]]
   :main ^:skip-aot whatsoup.core
   :ring {:init    whatsoup.core/ring-init
          :handler whatsoup.core/app
