@@ -48,6 +48,10 @@ hr {
     text-align: left;
 }
 
+#meal-ingredients tr {
+    vertical-align: text-top;
+}
+
 table {
     border-collapse: collapse;
 }
@@ -56,6 +60,12 @@ td, th {
     padding: 0.5em;
     font-size: large;
     /*border: 1px solid black;*/
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
 i {

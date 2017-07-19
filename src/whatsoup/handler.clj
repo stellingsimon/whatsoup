@@ -26,9 +26,10 @@
 
 
 (defn render-foods [foods]
-  (if (empty? foods)
-    "-"
-    (map #(str/capitalize (name %)) foods)))
+  (cond
+    (empty? foods) "-"
+    (= 1 (count foods)) (str/capitalize (name (first foods)))
+    :else [:ul (for [f foods] [:li (str/capitalize (name f))])]))
 
 
 (defn render-action
@@ -74,7 +75,7 @@
    (for [{:keys [role selected-foods] :as ingredient} ingredients]
      [:tr
       [:td role]
-      [:td (str/join ", " (render-foods selected-foods))]
+      [:td (render-foods selected-foods)]
       [:td
        (ingredient-action :new ingredient)
        (ingredient-action :remove ingredient)
