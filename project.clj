@@ -3,6 +3,7 @@
   :url "https://github.com/stellingsimon/whatsoup"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
+  :min-lein-version  "2.0.0"
   :dependencies [[compojure "1.6.0"]
                  [com.stuartsierra/component "0.3.2"]
                  [hiccup "1.0.5"]
