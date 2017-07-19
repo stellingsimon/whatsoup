@@ -67,7 +67,7 @@
            (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (update-ingredient! :remove ingredient-idx)
              (response/redirect "/"))
-           (route/not-found "404 Wait what?"))
+           (route/not-found (handler/handle-404)))
 
 
 ; TODO: (2017-07-19, sst) for some inexplicable reason, we loose session state after a few seconds if anti-forgery is enabled. Investigate why...

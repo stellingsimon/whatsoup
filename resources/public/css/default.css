@@ -12,6 +12,10 @@ h1 {
     text-align: center;
 }
 
+h1 i {
+    padding: 0 0.35em;
+}
+
 #app-icon {
     display: block;
     padding: auto;

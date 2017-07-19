@@ -14,15 +14,14 @@
      [:head
       [:title "Whatsoup?"]
       [:meta {:http-equiv "Content Type" :content "text/html; charset=utf-8"}]
-      (h-page/include-css "css/default.css" "css/font-awesome.css")]
+      (h-page/include-css "/css/default.css" "/css/font-awesome.css")]
      [:body
       [:div#header
        [:div#app-icon
-        [:img {:src "img/whatsoup.png" :alt "Whatsoup?"}]]
-       (into [] (concat [:h1] title))
-       [:hr]]
-      [:div#content
-       content]]]))
+        [:img {:src "/img/whatsoup.png" :alt "Whatsoup?"}]]
+       (into [] (concat [:h1] title))]
+      [:hr]
+      [:div#content content]]]))
 
 
 (defn render-foods [foods]
@@ -107,3 +106,7 @@
       :new (meal-generator/exchange-ingredient-foods kb recipe idx)
       :add (meal-generator/add-food-to-ingredient kb recipe idx)
       :remove (meal-generator/remove-food-from-ingredient recipe idx))))
+
+
+(defn handle-404 []
+  (render-page "404 - We're out of soup." nil))
