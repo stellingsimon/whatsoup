@@ -89,9 +89,9 @@
        (ingredient-action :add ingredient)]])])
 
 
-(defn display-meal [recipe]
+(defn display-meal [recipe interactions-count]
   (render-page
-    [(:recipe/name recipe) (render-action :new "refresh")]
+    [(str (:recipe/name recipe) ", v" interactions-count) (render-action :new "refresh")]
     (render-recipe-table (:recipe/ingredients recipe))))
 
 

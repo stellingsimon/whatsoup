@@ -56,7 +56,8 @@
 (defroutes app-routes
            (GET "/" []
              (if-let [recipe (session/get :recipe)]
-               (handler/display-meal recipe)
+               (do (session/put! :interactions-count (inc (session/get :interactions-count 0)))
+                   (handler/display-meal recipe (session/get :interactions-count)))
                (response/redirect "/new")))
            (GET "/new" []
              (session/put! :recipe (handler/generate-meal (:meal-generator system) ex-recipe))
