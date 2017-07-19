@@ -37,13 +37,25 @@
          (normalize-constraint (spec/conform ::mg/constraint [:any-of :food/lauch :food/zwiebel])))))
 
 
-(deftest -ingredients
-  (is (every? #(contains? #{:any-of :all-of} (get-in % [:constraint :op]))
-              (ingredients (spec/conform ::mg/recipe ex-recipe)))
-      "constraint-normalization performed")
-  (is (= (range (count (:recipe/ingredients ex-recipe)))    ; (0 1 2 ...)
-         (map :idx (ingredients (spec/conform ::mg/recipe ex-recipe))))
-      "idx-assignment starting at 0 counting up"))
+(deftest -with-candidates
+  (let [recipe (spec/conform ::mg/recipe ex-recipe)]
+    (is (= (range (count (:recipe/ingredients ex-recipe)))  ; (0 1 2 ...)
+           (map :idx (:recipe/ingredients (with-candidates test-kb recipe))))
+        "idx-assignment starting at 0 counting up")
+    (is (every?
+          #(contains? #{:any-of :all-of} (get-in % [:constraint :op]))
+          (:recipe/ingredients (with-candidates test-kb recipe)))
+        "constraint-normalization performed")
+    (is (= [#{:food/lauch}
+              #{:food/zwiebel}
+              #{:food/bouillon}
+              #{:food/kartoffel}
+              #{:food/broccoli
+                :food/kartoffel
+                :food/schweinefleisch}
+              #{}]
+           (mapv :candidate-foods (:recipe/ingredients (with-candidates test-kb recipe))))
+        "candidates present")))
 
 
 (deftest -satisfying-foods
@@ -59,8 +71,8 @@
 
 (deftest -match-ingredient
   (let [ingredients (->> (spec/conform ::mg/recipe ex-recipe)
-                         (ingredients)
-                         (with-candidates test-kb))
+                         (with-candidates test-kb)
+                         (:recipe/ingredients))
         selected-foods #{:food/lauch}
         puree-base (first (filter #(= "Püreebasis" (:role %)) ingredients))
         others (first (filter #(= "Weitere Zutaten" (:role %)) ingredients))
@@ -75,9 +87,8 @@
 
 
 (deftest -match-ingredients
-  (let [ingredients (->> (spec/conform ::mg/recipe ex-recipe)
-                         (ingredients)
-                         (with-candidates test-kb))
+  (let [recipe (->> (spec/conform ::mg/recipe ex-recipe)
+                    (with-candidates test-kb))
         selected-foods #{:food/lauch}
         food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
                                    [:food/lauch :food/schweinefleisch] 5.0}]
@@ -87,11 +98,4 @@
             #{:food/kartoffel}
             #{:food/schweinefleisch}
             #{}]                                            ; no match for :property/knusprig
-           (map :selected-foods (match-ingredients test-kb ingredients))))))
-
-
-(deftest -meal
-  (let [selected-foods #{:food/lauch}
-        food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
-                                   [:food/lauch :food/schweinefleisch] 5.0}]
-    (is (= ex-meal (meal test-kb ex-recipe)))))
+           (map :selected-foods (:recipe/ingredients (match-ingredients test-kb recipe)))))))

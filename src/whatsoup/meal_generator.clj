@@ -56,12 +56,6 @@
      :elems (into [] (map second (concat [(:first detail)] (:rest detail))))}))
 
 
-(defn ingredients [recipe]
-  (->> (:recipe/ingredients recipe)
-       (map #(update-in % [:constraint] normalize-constraint))
-       (map-indexed #(merge {:idx %1 :role ""} %2))))
-
-
 ;; basic algorithm:
 ;; - compute candidates for each ingredient
 ;; - remove forbidden foods from the candidates
@@ -88,17 +82,20 @@
 
 (defn with-candidates
   "initializes the keys used in the computation of the food selection"
-  [kb ingredients]
-  (letfn [(candidates [ingredient]
-            (satisfying-foods kb (:constraint ingredient)))
-          (merge-candidates [ingredient]
-            (merge {:selected-foods  #{}
-                    :candidate-foods (candidates ingredient)} ingredient))]
-    (mapv merge-candidates ingredients)))
+  [kb recipe]
+  (letfn [(merge-idx [ingredients]
+            (->> (map-indexed #(merge {:idx %1 :role ""} %2) ingredients)
+                 (map #(update % :constraint normalize-constraint))))
+          (merge-candidates [ingredients]
+            (mapv #(merge {:selected-foods  #{}
+                           :candidate-foods (satisfying-foods kb (:constraint %))} %) ingredients))]
+    (-> recipe
+        (update :recipe/ingredients merge-idx)
+        (update :recipe/ingredients merge-candidates))))
 
 
-(defn candidate-foods [ingredients] (mapcat :candidate-foods ingredients))
-(defn selected-foods [ingredients] (mapcat :selected-foods ingredients))
+(defn candidate-foods [recipe] (mapcat :candidate-foods (:recipe/ingredients recipe)))
+(defn selected-foods [recipe] (mapcat :selected-foods (:recipe/ingredients recipe)))
 
 
 (defn matchable?
@@ -134,26 +131,21 @@
     (select-highest-scoring-food kb ingredient selected-foods)))
 
 
-(defn next-matchable [ingredients]
-  (first (filter matchable? ingredients)))                  ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
+(defn next-matchable-ingredient [recipe]
+  (first (filter matchable? (:recipe/ingredients recipe))))                  ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
 
 
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
-  [kb ingredients]
-  (if-let [next-match (next-matchable ingredients)]
-    (recur kb
-           (as-> next-match ingredient
-                 (match-ingredient kb ingredient (selected-foods ingredients))
-                 (assoc ingredients (:idx next-match) ingredient)))
-    ingredients))
-
-
-(defn meal [kb recipe]
-  (let [name (:recipe/name recipe)
-        ingredients (->> (spec/conform ::recipe recipe)
-                         (ingredients)
-                         (with-candidates kb))
-        resulting-recipe (match-ingredients kb ingredients)]
-    {:meal/name        name
-     :meal/ingredients (mapv #(into [] (concat [(:role %)] (:selected-foods %))) resulting-recipe)}))
+  ([food-kb recipe]
+    (match-ingredients food-kb recipe 100))
+  ([food-kb recipe max-loops]
+   (when (zero? max-loops)
+     (throw (IllegalStateException. (str "aborted unsafe loop, recipe: " recipe))))
+   (if-let [next-match (next-matchable-ingredient recipe)]
+     (recur food-kb
+            (as-> next-match ingredient
+                  (match-ingredient food-kb ingredient (selected-foods recipe))
+                  (assoc-in recipe [:recipe/ingredients (:idx next-match)] ingredient))
+            (dec max-loops))
+     recipe)))

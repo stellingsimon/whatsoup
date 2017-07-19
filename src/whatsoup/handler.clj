@@ -79,7 +79,6 @@
 ; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
 (defn handle-meal [system recipe]
   (let [matched-ingredients (->> (spec/conform ::meal-generator/recipe recipe)
-                                 (meal-generator/ingredients)
                                  (meal-generator/with-candidates (:food-kb system))
                                  (meal-generator/match-ingredients (:food-kb system)))]
     (render-page
