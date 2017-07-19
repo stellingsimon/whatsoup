@@ -33,7 +33,7 @@
 
 (defn render-action
   ([action icon]
-    (render-action action icon nil))
+   (render-action action icon nil))
   ([action icon idx]
    [:a {:href (str "/" (name action) (when idx (str "/" idx)))}
     [(keyword (str "i.fa.fa-" icon))]]))
@@ -46,13 +46,19 @@
 (defmulti ingredient-action
           "renders the action icon iff applicable"
           (fn [action ingredient] action))
+
+
 (defmethod ingredient-action :new [_ ingredient]
   (when (not (empty? (:candidate-foods ingredient)))
     (render-action :new "refresh" (:idx ingredient))))
+
+
 (defmethod ingredient-action :add [_ ingredient]
   (when (and (not (empty? (:candidate-foods ingredient)))
              (zero-to-many-constraint ingredient))
     (render-action :add "plus" (:idx ingredient))))
+
+
 (defmethod ingredient-action :remove [_ ingredient]
   (when (and (zero-to-many-constraint ingredient)
              (not (empty? (:selected-foods ingredient))))
@@ -75,12 +81,25 @@
        (ingredient-action :add ingredient)]])])
 
 
+(defn display-meal [recipe]
+  (render-page
+    [(:recipe/name recipe) (render-action :new "refresh")]
+    (render-recipe-table (:recipe/ingredients recipe))))
+
+
 ; TODO: (2017-07-18, sst) don't pass system here!
 ; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
-(defn handle-meal [system recipe]
-  (let [matched-ingredients (->> recipe
-                                 (meal-generator/with-candidates (:food-kb system))
-                                 (meal-generator/match-ingredients (:food-kb system)))]
-    (render-page
-      [(:recipe/name recipe) (render-action :new "refresh")]
-      (render-recipe-table (:recipe/ingredients matched-ingredients)))))
+(defn generate-meal [system recipe]
+  (let [kb (:food-kb system)]
+    (->> recipe
+         (meal-generator/with-candidates kb)
+         (meal-generator/match-ingredients kb))))
+
+
+(defn handle-remove [recipe idx]
+  (meal-generator/remove-food-from-ingredient recipe idx))
+
+; TODO: (2017-07-18, sst) don't pass system here!
+(defn handle-add [system recipe idx]
+  (let [kb (:food-kb system)]
+    (meal-generator/add-food-to-ingredient kb recipe idx)))

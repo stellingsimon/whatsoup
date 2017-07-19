@@ -44,19 +44,22 @@
                                        :* [:any-of :property/gemüse :property/fleisch]]
                                       ["Einlage" :* :property/knusprig]]}))
 
+
 (defroutes app-routes
            (GET "/" []
-             (when (nil? (session/get :recipe))
-               (session/put! :recipe ex-recipe))
-             (handler/handle-meal system (session/get :recipe)))
+             (if-let [recipe (session/get :recipe)]
+               (handler/display-meal recipe)
+               (response/redirect "/new")))
            (GET "/new" [ingr]
-             (session/remove! :recipe)
+             (session/put! :recipe (handler/generate-meal system ex-recipe))
              (response/redirect "/"))
            (GET ["/add/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             ; TODO: implement
+             (when-let [recipe (session/get :recipe)]
+               (session/put! :recipe (handler/handle-add system recipe (Integer/parseInt ingredient-idx))))
              (response/redirect "/"))
            (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             ; TODO: implement
+             (when-let [recipe (session/get :recipe)]
+               (session/put! :recipe (handler/handle-remove recipe (Integer/parseInt ingredient-idx))))
              (response/redirect "/"))
            (route/not-found "Not Found"))
 

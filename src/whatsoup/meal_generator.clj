@@ -114,8 +114,14 @@
 
 (defn select-food [ingredient food]
   (-> ingredient
-      (update :selected-foods conj food)
-      (update :candidate-foods disj food)))
+      (update :candidate-foods disj food)
+      (update :selected-foods conj food)))
+
+
+(defn deselect-food [ingredient food]
+  (-> ingredient
+      (update :selected-foods disj food)
+      (update :candidate-foods conj food)))
 
 
 (defn select-highest-scoring-food [kb ingredient selected-foods]
@@ -149,3 +155,14 @@
                   (assoc-in recipe [:recipe/ingredients (:idx next-match)] ingredient))
             (dec max-loops))
      recipe)))
+
+
+(defn remove-food-from-ingredient [recipe idx]
+  (update-in recipe [:recipe/ingredients idx]
+             #(deselect-food % (first (:selected-foods %)))))
+
+
+(defn add-food-to-ingredient [food-kb recipe idx]
+  (as-> (get-in recipe [:recipe/ingredients idx]) ingredient
+        (match-ingredient food-kb ingredient (selected-foods recipe))
+        (assoc-in recipe [:recipe/ingredients idx] ingredient)))
