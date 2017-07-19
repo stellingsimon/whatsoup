@@ -73,4 +73,4 @@
  ; ,,, #{:fleisch :umami},,, #{:dekoration}
 
  :food-compatibility-matrix {[:food/broccoli :food/lauch]        0.5
-                             [:food/lauch :food/schweinefleisch] 5.0}}
+                             [:food/lauch :food/tomate] 100.0}}

@@ -126,10 +126,20 @@
         (update :candidate-foods set/union foods))))
 
 
-(defn select-highest-scoring-food [mg ingredient selected-foods]
+(defn sample-foods [scored-foods]
+  (let [total-score (apply + (vals scored-foods))
+        approx-sample-size 1000]
+    (letfn [(sample-n [score]
+              (int (/ (* approx-sample-size score) total-score)))
+            (create-sample [[food score]]
+              (repeat (sample-n score) food))]
+      (mapcat create-sample (seq scored-foods)))))
+
+(defn sample-weighted-foods [mg ingredient selected-foods]
   (->> (:candidate-foods ingredient)
+       (index-with #(kb/score (:food-kb mg) % selected-foods))
+       (sample-foods)
        (sort-by #(kb/score (:food-kb mg) % selected-foods) #(> %1 %2))
-       (take 10)
        ((:picker mg) ,,,)
        (select-food ingredient)))
 
@@ -137,7 +147,7 @@
 (defn match-ingredient [mg ingredient selected-foods]
   (if (unambiguous-selection? ingredient)
     (select-food ingredient ((:picker mg) (:candidate-foods ingredient)))
-    (select-highest-scoring-food mg ingredient selected-foods)))
+    (sample-weighted-foods mg ingredient selected-foods)))
 
 
 (defn next-matchable-ingredient [mg recipe]
