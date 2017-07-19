@@ -24,11 +24,16 @@
       [:div#content content]]]))
 
 
+(defn render-food [food]
+  (->> (str/split (name food) #"-")
+       (map str/capitalize)
+       (str/join " ")))
+
 (defn render-foods [foods]
   (cond
     (empty? foods) "-"
-    (= 1 (count foods)) (str/capitalize (name (first foods)))
-    :else [:ul (for [f foods] [:li (str/capitalize (name f))])]))
+    (= 1 (count foods)) (render-food (first foods))
+    :else [:ul (for [f foods] [:li (render-food f)])]))
 
 
 (defn render-action

@@ -35,10 +35,17 @@
           (assoc :food-compatibility-matrix food-compatibility-matrix)
           (dissoc :config)))))
 
+(defn expand-catalog [catalog]
+  "{:a #{:b :c}} -> {:food/name :food/a
+                     :food/properties #{:property/b :property/c}"
+  (vec (for [kv catalog] {:food/name       (keyword "food" (name (key kv)))
+                          :food/properties (apply hash-set (map #(keyword "property" (name %)) (val kv)))})))
+
 
 (defn create-food-kb [config-file]
   (let [config (-> (slurp config-file)
-                   (edn/read-string))]
+                   (edn/read-string)
+                   (update :food-catalog expand-catalog))]
     (component/using (->FoodKnowledgeBase config) [])))
 
 

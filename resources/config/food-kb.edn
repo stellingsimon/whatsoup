@@ -1,10 +1,76 @@
-{:food-catalog              [{:food/name       :food/kartoffel
-                              :food/properties #{:property/gemüse :property/stärkehaltig}}
-                             {:food/name       :food/broccoli
-                              :food/properties #{:property/gemüse}}
-                             {:food/name       :food/tomate
-                              :food/properties #{:property/gemüse :property/stärkehaltig}}
-                             {:food/name       :food/schweinefleisch
-                              :food/properties #{:property/fleisch}}]
+{:food-catalog
+                            {:kartoffel        #{:gemüse :stärkehaltig :geschmacks-verfeinernd}
+                             :süsskartoffel    #{:gemüse :stärkehaltig :geschmacks-verfeinernd}
+                             :karotten         #{:gemüse :stärkehaltig :geschmacks-definierend}
+                             :knollensellerie  #{:gemüse :umami}
+                             :kohlrabi         #{:gemüse :kohl :geschmacks-definierend}
+                             :stangensellerie  #{:gemüse}
+                             :randen           #{:gemüse :stärkehaltig}
+                             :blumenkohl       #{:gemüse :stärkehaltig :kohl :geschmacks-verfeinernd}
+                             :broccoli         #{:gemüse}
+                             :romanesco        #{:gemüse}
+                             :roter-kabis      #{:gemüse}
+                             :weisser-kabis    #{:gemüse}
+                             :rotkraut         #{:gemüse :stärkehaltig}
+                             :cherry-tomaten   #{:gemüse :umami :geschmacks-definierend}
+                             :tomate           #{:gemüse :umami :geschmacks-definierend}
+                             :radieschen       #{:gemüse :geschmacks-definierend :scharf}
+                             :weisser-rettich  #{:gemüse :geschmacks-definierend :scharf}
+                             :gurke            #{:gemüse :geschmacks-verfeinernd}
+                             :peperoni         #{:gemüse}
+                             :avocado          #{:gemüse :stärkehaltig}
+                             :chicoree         #{:gemüse :geschmacks-verfeinernd}
+                             :jungspinat       #{:gemüse}
+                             :spinat           #{:gemüse}
+                             :nüsslisalat      #{:gemüse :salat}
+                             :rucola           #{:gemüse}
+                             :auberginen       #{:gemüse :geschmacks-verfeinernd}
+                             :zucchetti        #{:gemüse :geschmacks-verfeinernd}
+                             :mais             #{:gemüse :stärkehaltig}
+                             :grüne-bohnen     #{:gemüse :stärkehaltig}
+                             :rote-bohnen      #{:gemüse :stärkehaltig}
+                             :fenchel          #{:gemüse :geschmacks-definierend}
+                             :lauch            #{:gemüse :geschmacks-definierend}
+                             :federkohl        #{:gemüse}
+                             :krautstiel       #{:gemüse}
+                             :lattich          #{:gemüse}
+                             :champignon       #{:gemüse :pilz}
+                             :kräuterseitling  #{:gemüse :pilz}
+                             :steinpilz        #{:gemüse :pilz}
+                             :shiitake         #{:gemüse :pilz :umami}
+                             :artischocken     #{:gemüse}
+                             :knoblauch        #{:gemüse :geschmacks-definierend :scharf}
+                             :zwiebel          #{:gemüse :geschmacks-definierend}
+                             :frühlingszwiebel #{:gemüse :geschmacks-definierend}
+                             :schalotte        #{:gemüse :geschmacks-definierend}
+                             :kresse           #{:gemüse :salat}
+                             :kürbis           #{:gemüse :stärkehaltig :geschmacks-definierend}
+                             :rosenkohl        #{:gemüse :stärkehaltig :kohl}
+                             :wirsing          #{:gemüse :kohl}
+
+                             :basilikum        #{:gewürz :kräuter}
+                             :dill             #{:gewürz :kräuter}
+                             :estragon         #{:gewürz :kräuter}
+                             :kerbel           #{:gewürz :kräuter}
+                             :koriander        #{:gewürz :kräuter}
+                             :majoran          #{:gewürz :kräuter}
+                             :oregano          #{:gewürz :kräuter}
+                             :pfefferminze     #{:gewürz :kräuter}
+                             :rosmarin         #{:gewürz :kräuter}
+                             :salbei           #{:gewürz :kräuter}
+                             :schnittlauch     #{:gewürz :kräuter :dekoration}
+                             :thymian          #{:gewürz :kräuter}
+                             :zitronenmelisse  #{:gewürz :kräuter}
+                             :zitronensaft     #{:gewürz}
+                             :petersilie       #{:gewürz :kräuter :dekoration}
+                             :ingwer           #{:gewürz :scharf}
+                             :peperonchini     #{:gewürz :scharf}
+
+                             :milch            #{:milchprodukt :geschmacks-verfeinernd :umami}
+                             :rahm             #{:milchprodukt :geschmacks-verfeinernd :umami}
+                             :mascarpone       #{:milchprodukt :käse :geschmacks-verfeinernd :umami}
+                             :mozarella        #{:milchprodukt :käse :geschmacks-verfeinernd :umami}}
+ ; ,,, #{:fleisch :umami},,, #{:dekoration}
+
  :food-compatibility-matrix {[:food/broccoli :food/lauch]        0.5
                              [:food/lauch :food/schweinefleisch] 5.0}}

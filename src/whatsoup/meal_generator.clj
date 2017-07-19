@@ -129,6 +129,7 @@
 (defn select-highest-scoring-food [mg ingredient selected-foods]
   (->> (:candidate-foods ingredient)
        (sort-by #(kb/score (:food-kb mg) % selected-foods) #(> %1 %2))
+       (take 10)
        ((:picker mg) ,,,)
        (select-food ingredient)))
 
