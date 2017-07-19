@@ -135,7 +135,7 @@
               (repeat (sample-n score) food))]
       (mapcat create-sample (seq scored-foods)))))
 
-(defn sample-weighted-foods [mg ingredient selected-foods]
+(defn select-sampled-food [mg ingredient selected-foods]
   (->> (:candidate-foods ingredient)
        (index-with #(kb/score (:food-kb mg) % selected-foods))
        (sample-foods)
@@ -147,7 +147,7 @@
 (defn match-ingredient [mg ingredient selected-foods]
   (if (unambiguous-selection? ingredient)
     (select-food ingredient ((:picker mg) (:candidate-foods ingredient)))
-    (sample-weighted-foods mg ingredient selected-foods)))
+    (select-sampled-food mg ingredient selected-foods)))
 
 
 (defn next-matchable-ingredient [mg recipe]
