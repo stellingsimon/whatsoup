@@ -124,6 +124,13 @@
       (update :candidate-foods conj food)))
 
 
+(defn deselect-all-foods [ingredient]
+  (let [foods (:selected-foods ingredient)]
+    (-> ingredient
+        (assoc :selected-foods #{})
+        (update :candidate-foods set/union foods))))
+
+
 (defn select-highest-scoring-food [kb ingredient selected-foods]
   (->> (:candidate-foods ingredient)
        (sort-by #(kb/score kb % selected-foods) #(> %1 %2))
@@ -138,13 +145,13 @@
 
 
 (defn next-matchable-ingredient [recipe]
-  (first (filter matchable? (:recipe/ingredients recipe))))                  ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
+  (first (filter matchable? (:recipe/ingredients recipe)))) ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
 
 
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
   ([food-kb recipe]
-    (match-ingredients food-kb recipe 100))
+   (match-ingredients food-kb recipe 100))
   ([food-kb recipe max-loops]
    (when (zero? max-loops)
      (throw (IllegalStateException. (str "aborted unsafe loop, recipe: " recipe))))
@@ -161,8 +168,12 @@
   (update-in recipe [:recipe/ingredients idx]
              #(deselect-food % (first (:selected-foods %)))))
 
-
 (defn add-food-to-ingredient [food-kb recipe idx]
   (as-> (get-in recipe [:recipe/ingredients idx]) ingredient
         (match-ingredient food-kb ingredient (selected-foods recipe))
         (assoc-in recipe [:recipe/ingredients idx] ingredient)))
+
+
+(defn exchange-ingredient-foods [kb recipe idx]
+  (let [removed (update-in recipe [:recipe/ingredients idx] deselect-all-foods)]
+    (add-food-to-ingredient kb removed idx)))

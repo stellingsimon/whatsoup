@@ -50,8 +50,12 @@
              (if-let [recipe (session/get :recipe)]
                (handler/display-meal recipe)
                (response/redirect "/new")))
-           (GET "/new" [ingr]
+           (GET "/new" []
              (session/put! :recipe (handler/generate-meal system ex-recipe))
+             (response/redirect "/"))
+           (GET ["/new/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
+             (when-let [recipe (session/get :recipe)]
+               (session/put! :recipe (handler/handle-new system recipe (Integer/parseInt ingredient-idx))))
              (response/redirect "/"))
            (GET ["/add/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (when-let [recipe (session/get :recipe)]
@@ -61,7 +65,7 @@
              (when-let [recipe (session/get :recipe)]
                (session/put! :recipe (handler/handle-remove recipe (Integer/parseInt ingredient-idx))))
              (response/redirect "/"))
-           (route/not-found "Not Found"))
+           (route/not-found "404 Wait what?"))
 
 
 ; TODO: (2017-07-19, sst) for some inexplicable reason, we loose session state after a few seconds if anti-forgery is enabled. Investigate why...

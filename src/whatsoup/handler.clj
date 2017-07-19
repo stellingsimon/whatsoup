@@ -50,7 +50,10 @@
 
 
 (defmethod ingredient-action :new [_ ingredient]
-  (when (not (empty? (:candidate-foods ingredient)))
+  (when (or (and (zero-to-many-constraint ingredient)
+                 (not (empty? (:selected-foods ingredient))))
+            (and (not (zero-to-many-constraint ingredient))
+                 (not (empty? (:candidate-foods ingredient)))))
     (render-action :new "refresh" (:idx ingredient))))
 
 
@@ -100,7 +103,13 @@
 (defn handle-remove [recipe idx]
   (meal-generator/remove-food-from-ingredient recipe idx))
 
+
 ; TODO: (2017-07-18, sst) don't pass system here!
 (defn handle-add [system recipe idx]
   (let [kb (:food-kb system)]
     (meal-generator/add-food-to-ingredient kb recipe idx)))
+
+
+(defn handle-new [system recipe idx]
+  (let [kb (:food-kb system)]
+    (meal-generator/exchange-ingredient-foods kb recipe idx)))
