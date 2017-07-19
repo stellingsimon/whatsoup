@@ -100,16 +100,10 @@
          (meal-generator/match-ingredients kb))))
 
 
-(defn handle-remove [recipe idx]
-  (meal-generator/remove-food-from-ingredient recipe idx))
-
-
 ; TODO: (2017-07-18, sst) don't pass system here!
-(defn handle-add [system recipe idx]
+(defn handle-update [action system recipe idx]
   (let [kb (:food-kb system)]
-    (meal-generator/add-food-to-ingredient kb recipe idx)))
-
-
-(defn handle-new [system recipe idx]
-  (let [kb (:food-kb system)]
-    (meal-generator/exchange-ingredient-foods kb recipe idx)))
+    (case action
+      :new (meal-generator/exchange-ingredient-foods kb recipe idx)
+      :add (meal-generator/add-food-to-ingredient kb recipe idx)
+      :remove (meal-generator/remove-food-from-ingredient recipe idx))))

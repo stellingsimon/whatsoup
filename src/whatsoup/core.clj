@@ -45,6 +45,11 @@
                                       ["Einlage" :* :property/knusprig]]}))
 
 
+(defn update-ingredient! [action ingredient-idx]
+  (when-let [recipe (session/get :recipe)]
+    (session/put! :recipe (handler/handle-update action system recipe (Integer/parseInt ingredient-idx)))))
+
+
 (defroutes app-routes
            (GET "/" []
              (if-let [recipe (session/get :recipe)]
@@ -54,16 +59,13 @@
              (session/put! :recipe (handler/generate-meal system ex-recipe))
              (response/redirect "/"))
            (GET ["/new/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             (when-let [recipe (session/get :recipe)]
-               (session/put! :recipe (handler/handle-new system recipe (Integer/parseInt ingredient-idx))))
+             (update-ingredient! :new ingredient-idx)
              (response/redirect "/"))
            (GET ["/add/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             (when-let [recipe (session/get :recipe)]
-               (session/put! :recipe (handler/handle-add system recipe (Integer/parseInt ingredient-idx))))
+             (update-ingredient! :add ingredient-idx)
              (response/redirect "/"))
            (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             (when-let [recipe (session/get :recipe)]
-               (session/put! :recipe (handler/handle-remove recipe (Integer/parseInt ingredient-idx))))
+             (update-ingredient! :remove ingredient-idx)
              (response/redirect "/"))
            (route/not-found "404 Wait what?"))
 
