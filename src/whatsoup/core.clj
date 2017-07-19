@@ -10,11 +10,14 @@
             [noir.response :as response]
             [whatsoup.food-kb :as kb]
             [whatsoup.handler :as handler]
-            [whatsoup.meal-generator :as meal-generator]))
+            [whatsoup.meal-generator :as meal-generator]
+            [whatsoup.util :as util]))
 
 
 (defn production-system [config-file]
-  (component/system-map :food-kb (kb/create-food-kb config-file)))
+  (component/system-map :food-kb (kb/create-food-kb config-file)
+                        :meal-generator (meal-generator/create-meal-generator)
+                        :picker util/pick-random))
 
 
 (def system (production-system "resources/config/food-kb.edn"))
@@ -47,7 +50,7 @@
 
 (defn update-ingredient! [action ingredient-idx]
   (when-let [recipe (session/get :recipe)]
-    (session/put! :recipe (handler/handle-update action (:food-kb system) recipe (Integer/parseInt ingredient-idx)))))
+    (session/put! :recipe (handler/handle-update action (:meal-generator system) recipe (Integer/parseInt ingredient-idx)))))
 
 
 (defroutes app-routes
@@ -56,7 +59,7 @@
                (handler/display-meal recipe)
                (response/redirect "/new")))
            (GET "/new" []
-             (session/put! :recipe (handler/generate-meal (:food-kb system) ex-recipe))
+             (session/put! :recipe (handler/generate-meal (:meal-generator system) ex-recipe))
              (response/redirect "/"))
            (GET ["/new/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (update-ingredient! :new ingredient-idx)

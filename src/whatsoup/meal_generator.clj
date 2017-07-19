@@ -2,6 +2,7 @@
   "Generates a meal from a recipe, satisfying its constraints on the ingredients."
   (:require [clojure.set :as set]
             [clojure.spec.alpha :as spec]
+            [com.stuartsierra.component :as component]
             [whatsoup.food-kb :as kb]
             [whatsoup.util :refer :all]))
 
@@ -28,19 +29,13 @@
 (spec/def ::recipe (spec/keys :req [:recipe/name :recipe/ingredients]))
 
 
-;; Meals list their ingredient foods, which may be grouped by `role`.
-;; Ingredients are listed in the same order as in the recipe.
-;;
-;; Here's an example:
-;;
-#_(def ex-out-meal
-    {:meal/name        "Püree-Suppe"
-     :meal/ingredients [["Zutat(en)" :food/lauch]
-                        ["Zutat(en)" :food/zwiebel]
-                        ["Zutat(en)" :food/bouillon]
-                        ["Püreebasis" :food/kartoffel]
-                        ["Weitere Zutaten" :food/karotten :food/broccoli]
-                        ["Einlage" :food/crouton]]})
+(defrecord MealGenerator [food-kb picker]
+  component/Lifecycle
+  (start [this] this))                                      ; TODO: (2017-07-19, sst): there's a default implementation, why is this needed?
+
+
+(defn create-meal-generator []
+  (component/using (map->MealGenerator {}) [:food-kb :picker]))
 
 
 (defn normalize-constraint
@@ -71,9 +66,9 @@
 
 (defn satisfying-foods
   "all foods from catalog that satisfy the given conformed constraint"
-  [kb normalized-constraint]
+  [mg normalized-constraint]
   (let [{:keys [op elems]} normalized-constraint
-        food-sets (map #(kb/resolve-food kb %) elems)]
+        food-sets (map #(kb/resolve-food (:food-kb mg) %) elems)]
     (cond
       (= :all-of op) (apply set/intersection food-sets)
       (= :any-of op) (apply set/union food-sets)
@@ -82,13 +77,13 @@
 
 (defn with-candidates
   "initializes the keys used in the computation of the food selection"
-  [kb recipe]
+  [mg recipe]
   (letfn [(merge-idx [ingredients]
             (->> (map-indexed #(merge {:idx %1 :role ""} %2) ingredients)
                  (map #(update % :constraint normalize-constraint))))
           (merge-candidates [ingredients]
             (mapv #(merge {:selected-foods  #{}
-                           :candidate-foods (satisfying-foods kb (:constraint %))} %) ingredients))]
+                           :candidate-foods (satisfying-foods mg (:constraint %))} %) ingredients))]
     (-> recipe
         (update :recipe/ingredients merge-idx)
         (update :recipe/ingredients merge-candidates))))
@@ -131,49 +126,49 @@
         (update :candidate-foods set/union foods))))
 
 
-(defn select-highest-scoring-food [kb ingredient selected-foods]
+(defn select-highest-scoring-food [mg ingredient selected-foods]
   (->> (:candidate-foods ingredient)
-       (sort-by #(kb/score kb % selected-foods) #(> %1 %2))
-       (first)                                              ; TODO: (2017-07-15, sst) randomize if several are best-matching
+       (sort-by #(kb/score (:food-kb mg) % selected-foods) #(> %1 %2))
+       ((:picker mg) ,,,)
        (select-food ingredient)))
 
 
-(defn match-ingredient [kb ingredient selected-foods]
+(defn match-ingredient [mg ingredient selected-foods]
   (if (unambiguous-selection? ingredient)
-    (select-food ingredient (first (:candidate-foods ingredient)))
-    (select-highest-scoring-food kb ingredient selected-foods)))
+    (select-food ingredient ((:picker mg) (:candidate-foods ingredient)))
+    (select-highest-scoring-food mg ingredient selected-foods)))
 
 
-(defn next-matchable-ingredient [recipe]
-  (first (filter matchable? (:recipe/ingredients recipe)))) ; TODO: (2017-07-15, sst) randomize order in which foods are fixed
+(defn next-matchable-ingredient [mg recipe]
+  ((:picker mg) (filter matchable? (:recipe/ingredients recipe))))
 
 
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
-  ([food-kb recipe]
-   (match-ingredients food-kb recipe 100))
-  ([food-kb recipe max-loops]
+  ([mg recipe]
+   (match-ingredients mg recipe 100))
+  ([mg recipe max-loops]
    (when (zero? max-loops)
      (throw (IllegalStateException. (str "aborted unsafe loop, recipe: " recipe))))
-   (if-let [next-match (next-matchable-ingredient recipe)]
-     (recur food-kb
+   (if-let [next-match (next-matchable-ingredient mg recipe)]
+     (recur mg
             (as-> next-match ingredient
-                  (match-ingredient food-kb ingredient (selected-foods recipe))
+                  (match-ingredient mg ingredient (selected-foods recipe))
                   (assoc-in recipe [:recipe/ingredients (:idx next-match)] ingredient))
             (dec max-loops))
      recipe)))
 
 
-(defn remove-food-from-ingredient [recipe idx]
+(defn remove-food-from-ingredient [mg recipe idx]
   (update-in recipe [:recipe/ingredients idx]
-             #(deselect-food % (first (:selected-foods %)))))
+             #(deselect-food % ((:picker mg) (:selected-foods %)))))
 
-(defn add-food-to-ingredient [food-kb recipe idx]
+(defn add-food-to-ingredient [mg recipe idx]
   (as-> (get-in recipe [:recipe/ingredients idx]) ingredient
-        (match-ingredient food-kb ingredient (selected-foods recipe))
+        (match-ingredient mg ingredient (selected-foods recipe))
         (assoc-in recipe [:recipe/ingredients idx] ingredient)))
 
 
-(defn exchange-ingredient-foods [kb recipe idx]
+(defn exchange-ingredient-foods [mg recipe idx]
   (let [removed (update-in recipe [:recipe/ingredients idx] deselect-all-foods)]
-    (add-food-to-ingredient kb removed idx)))
+    (add-food-to-ingredient mg removed idx)))

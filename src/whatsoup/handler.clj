@@ -91,17 +91,17 @@
 
 
 ; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
-(defn generate-meal [kb recipe]
+(defn generate-meal [mg recipe]
   (->> recipe
-       (meal-generator/with-candidates kb)
-       (meal-generator/match-ingredients kb)))
+       (meal-generator/with-candidates mg)
+       (meal-generator/match-ingredients mg)))
 
 
-(defn handle-update [action kb recipe idx]
+(defn handle-update [action mg recipe idx]
   (case action
-    :new (meal-generator/exchange-ingredient-foods kb recipe idx)
-    :add (meal-generator/add-food-to-ingredient kb recipe idx)
-    :remove (meal-generator/remove-food-from-ingredient recipe idx)))
+    :new (meal-generator/exchange-ingredient-foods mg recipe idx)
+    :add (meal-generator/add-food-to-ingredient mg recipe idx)
+    :remove (meal-generator/remove-food-from-ingredient mg recipe idx)))
 
 
 (defn handle-404 []
