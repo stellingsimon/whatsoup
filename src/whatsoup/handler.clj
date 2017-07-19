@@ -73,7 +73,7 @@
    [:tr
     [:th ""]
     [:th "Zutaten"]
-    [:th [:a {:href "/"} [:i.fa.fa-refresh]]]]
+    [:th #_[:a {:href "/"} [:i.fa.fa-refresh]]]]
    (for [{:keys [role selected-foods] :as ingredient} ingredients]
      [:tr
       [:td role]
