@@ -90,22 +90,18 @@
     (render-recipe-table (:recipe/ingredients recipe))))
 
 
-; TODO: (2017-07-18, sst) don't pass system here!
 ; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
-(defn generate-meal [system recipe]
-  (let [kb (:food-kb system)]
-    (->> recipe
-         (meal-generator/with-candidates kb)
-         (meal-generator/match-ingredients kb))))
+(defn generate-meal [kb recipe]
+  (->> recipe
+       (meal-generator/with-candidates kb)
+       (meal-generator/match-ingredients kb)))
 
 
-; TODO: (2017-07-18, sst) don't pass system here!
-(defn handle-update [action system recipe idx]
-  (let [kb (:food-kb system)]
-    (case action
-      :new (meal-generator/exchange-ingredient-foods kb recipe idx)
-      :add (meal-generator/add-food-to-ingredient kb recipe idx)
-      :remove (meal-generator/remove-food-from-ingredient recipe idx))))
+(defn handle-update [action kb recipe idx]
+  (case action
+    :new (meal-generator/exchange-ingredient-foods kb recipe idx)
+    :add (meal-generator/add-food-to-ingredient kb recipe idx)
+    :remove (meal-generator/remove-food-from-ingredient recipe idx)))
 
 
 (defn handle-404 []
