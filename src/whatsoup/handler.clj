@@ -35,7 +35,7 @@
   ([action icon]
     (render-action action icon nil))
   ([action icon idx]
-   [:a {:href (str "/" (name action) (when idx (str "?ingr=" idx)))}
+   [:a {:href (str "/" (name action) (when idx (str "/" idx)))}
     [(keyword (str "i.fa.fa-" icon))]]))
 
 
@@ -78,9 +78,9 @@
 ; TODO: (2017-07-18, sst) don't pass system here!
 ; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
 (defn handle-meal [system recipe]
-  (let [matched-ingredients (->> (spec/conform ::meal-generator/recipe recipe)
+  (let [matched-ingredients (->> recipe
                                  (meal-generator/with-candidates (:food-kb system))
                                  (meal-generator/match-ingredients (:food-kb system)))]
     (render-page
       [(:recipe/name recipe) (render-action :new "refresh")]
-      (render-recipe-table matched-ingredients))))
+      (render-recipe-table (:recipe/ingredients matched-ingredients)))))
