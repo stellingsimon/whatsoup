@@ -39,7 +39,8 @@
   ([action icon]
    (render-action action icon nil))
   ([action icon idx]
-   [:a {:href (str "/" (name action) (when idx (str "/" idx)))}
+   [:a {:title (str (name action) (when idx " ingredient"))
+        :href  (str "/" (name action) (when idx (str "/" idx)))}
     [(keyword (str "i.fa.fa-" icon))]]))
 
 (defn zero-to-many-constraint [ingredient]
