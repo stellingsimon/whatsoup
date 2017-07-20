@@ -1,4 +1,4 @@
-(ns whatsoup.handler
+(ns whatsoup.web
   (:require [clojure.spec.alpha :as spec]
             [clojure.string :as str]
             [hiccup.core :as h :refer :all]

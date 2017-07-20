@@ -9,7 +9,7 @@
             [noir.session :as session]
             [noir.response :as response]
             [whatsoup.food-kb :as kb]
-            [whatsoup.handler :as handler]
+            [whatsoup.web :as web]
             [whatsoup.meal-generator :as meal-generator]
             [whatsoup.util :as util]))
 
@@ -50,17 +50,17 @@
 
 (defn update-ingredient! [action ingredient-idx]
   (when-let [recipe (session/get :recipe)]
-    (session/put! :recipe (handler/handle-update action (:meal-generator system) recipe (Integer/parseInt ingredient-idx)))))
+    (session/put! :recipe (web/handle-update action (:meal-generator system) recipe (Integer/parseInt ingredient-idx)))))
 
 
 (defroutes app-routes
            (GET "/" []
              (if-let [recipe (session/get :recipe)]
                (do (session/put! :interactions-count (inc (session/get :interactions-count 0)))
-                   (handler/display-meal recipe (session/get :interactions-count)))
+                   (web/display-meal recipe (session/get :interactions-count)))
                (response/redirect "/new")))
            (GET "/new" []
-             (session/put! :recipe (handler/generate-meal (:meal-generator system) ex-recipe))
+             (session/put! :recipe (web/generate-meal (:meal-generator system) ex-recipe))
              (response/redirect "/"))
            (GET ["/new/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (update-ingredient! :new ingredient-idx)
@@ -71,7 +71,7 @@
            (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (update-ingredient! :remove ingredient-idx)
              (response/redirect "/"))
-           (route/not-found (handler/handle-404)))
+           (route/not-found (web/handle-404)))
 
 
 ; TODO: (2017-07-19, sst) for some inexplicable reason, we loose session state after a few seconds if anti-forgery is enabled. Investigate why...
