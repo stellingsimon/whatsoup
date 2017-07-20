@@ -13,27 +13,21 @@
             [whatsoup.meal-generator :as meal-generator]
             [whatsoup.util :as util]))
 
-
 (defn production-system [config-file]
   (component/system-map :food-kb (kb/create-food-kb config-file)
                         :meal-generator (meal-generator/create-meal-generator)
                         :picker util/pick-random))
 
-
 (def system (production-system "resources/config/food-kb.edn"))
-
 
 (defn -main [& args]
   (alter-var-root #'system component/start-system))
 
-
 (defn ring-init []
   (alter-var-root #'system component/start-system))
 
-
 ; TODO: (2017-07-18, sst) As soon as the namespaces are reloaded, the system is reset. How to fix that properly?
 (ring-init)
-
 
 (def ex-recipe
   (spec/conform ::meal-generator/recipe
@@ -51,7 +45,6 @@
 (defn update-ingredient! [action ingredient-idx]
   (when-let [recipe (session/get :recipe)]
     (session/put! :recipe (web/handle-update action (:meal-generator system) recipe (Integer/parseInt ingredient-idx)))))
-
 
 (defroutes app-routes
            (GET "/" []
@@ -74,7 +67,6 @@
            (GET "/about" []
              (web/about-page))
            (route/not-found (web/handle-404)))
-
 
 ; TODO: (2017-07-19, sst) for some inexplicable reason, we loose session state after a few seconds if anti-forgery is enabled. Investigate why...
 (def mangled-site-defaults (merge site-defaults {:security {:anti-forgery false}}))

@@ -7,7 +7,6 @@
             [whatsoup.food-kb-test :refer [test-kb]]
             [whatsoup.test-util :refer :all]))
 
-
 ; TODO: (2017-07-15, sst) leverage spec to generate arbitrary recipes for us
 (def ex-recipe
   {:recipe/name        "Püree-Suppe"
@@ -28,15 +27,12 @@
                       ["Weitere Zutaten" :food/schweinefleisch]
                       ["Einlage"]]})
 
-
 (def test-mg
   ; TODO: (2017-07-16, sst) component/start probably not warranted here.
   (component/start
     (->MealGenerator test-kb first)))
 
 (def empty-mg (->MealGenerator {} first))
-
-
 
 (deftest -normalize-constraint
   (is (= {:op :all-of :elems [:food/bouillon]}
@@ -45,7 +41,6 @@
          (normalize-constraint (spec/conform ::mg/constraint [:all-of :property/gemüse :property/saison-jun]))))
   (is (= {:op :any-of :elems [:food/lauch :food/zwiebel]}
          (normalize-constraint (spec/conform ::mg/constraint [:any-of :food/lauch :food/zwiebel])))))
-
 
 (deftest -with-candidates
   (let [recipe (spec/conform ::mg/recipe ex-recipe)]
@@ -67,7 +62,6 @@
            (mapv :candidate-foods (:recipe/ingredients (with-candidates test-mg recipe))))
         "candidates present")))
 
-
 (deftest -satisfying-foods
   (let [all-of-constraint {:op :all-of :elems [:property/gemüse :property/stärkehaltig]}
         any-of-constraint {:op :any-of :elems [:property/fleisch :property/stärkehaltig]}]
@@ -77,7 +71,6 @@
         "report error on unnormalized simple constraint")
     (is (thrown? RuntimeException (satisfying-foods test-mg [:any-of :food/lauch :food/zwiebel]))
         "report error on unnormalized combined constraint")))
-
 
 (deftest -match-ingredient
   (let [ingredients (->> (spec/conform ::mg/recipe ex-recipe)
@@ -94,7 +87,6 @@
     (is (= #{:food/schweinefleisch}
            (:selected-foods (match-ingredient test-mg others selected-foods)))
         "food-compatibility-matrix lookup works")))
-
 
 (deftest -match-ingredients
   (let [recipe (->> (spec/conform ::mg/recipe ex-recipe)

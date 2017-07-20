@@ -5,10 +5,8 @@
             [clojure.spec.alpha :as spec]
             [com.stuartsierra.component :as component]))
 
-
 (defn food? [x] (and (keyword? x) (= "food" (namespace x))))
 (defn property? [x] (and (keyword? x) (= "property" (namespace x))))
-
 
 (spec/def ::food food?)
 (spec/def ::property property?)
@@ -16,12 +14,10 @@
   (spec/or :food ::food
            :property ::property))
 
-
 (defn- properties [food-def]
   (let [food (:food/name food-def)
         props (:food/properties food-def)]
     (apply merge (for [p props] {p #{food}}))))
-
 
 (defrecord FoodKnowledgeBase [config]
   component/Lifecycle
@@ -41,13 +37,11 @@
   (vec (for [kv catalog] {:food/name       (keyword "food" (name (key kv)))
                           :food/properties (apply hash-set (map #(keyword "property" (name %)) (val kv)))})))
 
-
 (defn create-food-kb [config-file]
   (let [config (-> (slurp config-file)
                    (edn/read-string)
                    (update :food-catalog expand-catalog))]
     (component/using (->FoodKnowledgeBase config) [])))
-
 
 (defn resolve-food
   "maps foods to themselves and properties to foods using the property-catalog"
@@ -56,7 +50,6 @@
     (food? food-or-property) (hash-set food-or-property)
     (property? food-or-property) (apply hash-set (get (:property-catalog kb) food-or-property))
     :else (throw (RuntimeException. (str "Expected a :food or :property, got: " food-or-property)))))
-
 
 (defn score [kb candidate-food selected-foods]
   "computes a numerical value reflecting how well the candidate-food fits the previously selected-foods"

@@ -6,14 +6,12 @@
             [whatsoup.food-kb :as kb]
             [whatsoup.util :refer :all]))
 
-
 ;; Recipes mainly consist of an ordered list of ingredient descriptors.
 ;; These specify one or more `properties` that the ingredient food(s) needs to satisfy.
 ;; Alternatively, they may also just list acceptable food choices.
 ;; Quantities are deliberately omitted for the moment.
 ;;
 ;; For an example, refer to the ns meal-generator-test.
-
 
 (spec/def ::constraint
   (spec/or :simple ::kb/food-or-property
@@ -28,15 +26,12 @@
 (spec/def :recipe/name string?)
 (spec/def ::recipe (spec/keys :req [:recipe/name :recipe/ingredients]))
 
-
 (defrecord MealGenerator [food-kb picker]
   component/Lifecycle
   (start [this] this))                                      ; TODO: (2017-07-19, sst): there's a default implementation, why is this needed?
 
-
 (defn create-meal-generator []
   (component/using (map->MealGenerator {}) [:food-kb :picker]))
-
 
 (defn normalize-constraint
   "takes a spec-conformed constraint and returns a map with only :op and :elems"
@@ -50,7 +45,6 @@
     {:op    (:op detail)
      :elems (into [] (map second (concat [(:first detail)] (:rest detail))))}))
 
-
 ;; basic algorithm:
 ;; - compute candidates for each ingredient
 ;; - remove forbidden foods from the candidates
@@ -63,7 +57,6 @@
 ;;   - from that var's candidates, pick a food f that's not yet used depending on some strategy
 ;;   - remove the picked food from candidates, add it to assigned-foods for that var
 
-
 (defn satisfying-foods
   "all foods from catalog that satisfy the given conformed constraint"
   [mg normalized-constraint]
@@ -73,7 +66,6 @@
       (= :all-of op) (apply set/intersection food-sets)
       (= :any-of op) (apply set/union food-sets)
       :else (throw (RuntimeException. (str "Unexpected op: " op " in constraint: " normalized-constraint))))))
-
 
 (defn with-candidates
   "initializes the keys used in the computation of the food selection"
@@ -88,10 +80,8 @@
         (update :recipe/ingredients merge-idx)
         (update :recipe/ingredients merge-candidates))))
 
-
 (defn candidate-foods [recipe] (mapcat :candidate-foods (:recipe/ingredients recipe)))
 (defn selected-foods [recipe] (mapcat :selected-foods (:recipe/ingredients recipe)))
-
 
 (defn matchable?
   ([ingredient food]
@@ -101,30 +91,25 @@
    (and (empty? (:selected-foods ingredient))
         (not (empty? (:candidate-foods ingredient))))))
 
-
 (defn unambiguous-selection? [ingredient]
   (and (= 1 (count (:candidate-foods ingredient)))
        (matchable? ingredient)))
-
 
 (defn select-food [ingredient food]
   (-> ingredient
       (update :candidate-foods disj food)
       (update :selected-foods conj food)))
 
-
 (defn deselect-food [ingredient food]
   (-> ingredient
       (update :selected-foods disj food)
       (update :candidate-foods conj food)))
-
 
 (defn deselect-all-foods [ingredient]
   (let [foods (:selected-foods ingredient)]
     (-> ingredient
         (assoc :selected-foods #{})
         (update :candidate-foods set/union foods))))
-
 
 (defn sample-foods [scored-foods]
   (let [total-score (apply + (vals scored-foods))
@@ -143,16 +128,13 @@
        ((:picker mg) ,,,)
        (select-food ingredient)))
 
-
 (defn match-ingredient [mg ingredient selected-foods]
   (if (unambiguous-selection? ingredient)
     (select-food ingredient ((:picker mg) (:candidate-foods ingredient)))
     (select-sampled-food mg ingredient selected-foods)))
 
-
 (defn next-matchable-ingredient [mg recipe]
   ((:picker mg) (filter matchable? (:recipe/ingredients recipe))))
-
 
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
@@ -169,7 +151,6 @@
             (dec max-loops))
      recipe)))
 
-
 (defn remove-food-from-ingredient [mg recipe idx]
   (update-in recipe [:recipe/ingredients idx]
              #(deselect-food % ((:picker mg) (:selected-foods %)))))
@@ -178,7 +159,6 @@
   (as-> (get-in recipe [:recipe/ingredients idx]) ingredient
         (match-ingredient mg ingredient (selected-foods recipe))
         (assoc-in recipe [:recipe/ingredients idx] ingredient)))
-
 
 (defn exchange-ingredient-foods [mg recipe idx]
   (let [removed (update-in recipe [:recipe/ingredients idx] deselect-all-foods)]

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-wc -l $(find . -name '*.clj') | grep 'total'
+wc -l $(find src -name '*.clj') | grep 'total'
