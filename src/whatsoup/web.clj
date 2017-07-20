@@ -19,7 +19,8 @@
      [:body
       [:div#header
        [:div#app-icon
-        [:a {:href (or home-href "/about")} [:img {:src "/img/whatsoup.png" :alt "Whatsoup?"}]]]
+        [:a {:title "Hey you! Whatsoup?" :href (or home-href "/about")}
+         [:img {:src "/img/whatsoup.png" :alt "Whatsoup?"}]]]
        (into [] (concat [:h1] title))]
       [:hr]
       [:div#content content]]]))
@@ -124,12 +125,14 @@
        [:cite "Molière"]]
       [:p "Soup is delicious, quickly prepared, healthy and economic. Why don't we eat it more often then?
            There's only so many instant soup flavors, and " [:strong "we lack imagination."]]
-      [:p "This software aims to help with the latter. It randomly derives new soups from a set of base
+      [:p "This software aims to provide a solution for the latter: it randomly derives new soups from a set of base
            recipes and a food catalog, while considering how well certain foods fit together."]
       [:p "Try out some of the more exotic combinations that are generated – after all,
            the culinary arts are full of surprises. Maybe we can even convince you that computers are able
            to produce art ;-)"]
-      [:p "Whatsoup, made with love and " (loc-count) " lines of Clojure."]]]
+      [:p "Bon appétit!"]
+      [:p {:style "text-align: right; font-style: italic;"}
+       "Whatsoup, made with love (and " (loc-count) " lines of Clojure)."]]]
     "/"))
 
 (defn handle-404 []
