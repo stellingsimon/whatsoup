@@ -1,5 +1,6 @@
 (ns whatsoup.web
-  (:require [clojure.spec.alpha :as spec]
+  (:require [clojure.java.shell :refer [sh]]
+            [clojure.spec.alpha :as spec]
             [clojure.string :as str]
             [hiccup.core :as h :refer :all]
             [hiccup.element :as h-elem :refer :all]
@@ -8,7 +9,7 @@
             [whatsoup.meal-generator :as meal-generator]))
 
 
-(defn render-page [title content]
+(defn render-page [title content & [home-href]]
   (html
     [:html {:xmlns "http://www.w3.org/1999/xhtml"}
      [:head
@@ -18,7 +19,7 @@
      [:body
       [:div#header
        [:div#app-icon
-        [:img {:src "/img/whatsoup.png" :alt "Whatsoup?"}]]
+        [:a {:href (or home-href "/about")} [:img {:src "/img/whatsoup.png" :alt "Whatsoup?"}]]]
        (into [] (concat [:h1] title))]
       [:hr]
       [:div#content content]]]))
@@ -78,7 +79,7 @@
    [:tr
     [:th ""]
     [:th "Zutaten"]
-    [:th #_[:a {:href "/"} [:i.fa.fa-refresh]]]]
+    [:th]]
    (for [{:keys [role selected-foods] :as ingredient} ingredients]
      [:tr
       [:td role]
@@ -108,6 +109,28 @@
     :add (meal-generator/add-food-to-ingredient mg recipe idx)
     :remove (meal-generator/remove-food-from-ingredient mg recipe idx)))
 
+
+(defn loc-count []
+  (let [loc-string (:out (sh "./loc.sh"))]
+    (str/replace loc-string "total" "")))
+
+
+(defn about-page []
+  (render-page
+    ["Whatsoup?"]
+    [:div#about-text
+     [:div
+      [:blockquote "I live on good soup, not fine words."
+       [:cite "Molière"]]
+      [:p "Soup is delicious, quickly prepared, healthy and economic. Why don't we eat it more often then?
+           There's only so many instant soup flavors, and " [:strong "we lack imagination."]]
+      [:p "This software aims to help with the latter. It randomly derives new soups from a set of base
+           recipes and a food catalog, while considering how well certain foods fit together."]
+      [:p "Try out some of the more exotic combinations that are generated – after all,
+           the culinary arts are full of surprises. Maybe we can even convince you that computers are able
+           to produce art ;-)"]
+      [:p "Whatsoup, made with love and " (loc-count) " lines of Clojure."]]]
+    "/"))
 
 (defn handle-404 []
   (render-page "404 - We're out of soup." nil))

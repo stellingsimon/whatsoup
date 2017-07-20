@@ -83,3 +83,42 @@ a, a:link, a:visited {
 a:hover {
     color: #de4a33;
 }
+
+#about-text {
+    padding: 0 31%;
+    text-align: justify;
+}
+
+blockquote {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-style: italic;
+    width: 500px;
+    margin: 0.25em 25%;
+    padding: 0.25em 40px;
+    line-height: 1.45;
+    position: relative;
+}
+
+blockquote:before {
+    display: block;
+    content: "\201C";
+    font-size: 80px;
+    position: absolute;
+    left: -20px;
+    top: -20px;
+}
+
+blockquote cite {
+    font-size: 14px;
+    display: block;
+    margin-top: 5px;
+}
+
+blockquote cite:before {
+    content: "\2014 \2009";
+}
+
+p {
+    line-height: 1.3em;
+}

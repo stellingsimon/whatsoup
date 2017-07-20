@@ -71,6 +71,8 @@
            (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (update-ingredient! :remove ingredient-idx)
              (response/redirect "/"))
+           (GET "/about" []
+             (web/about-page))
            (route/not-found (web/handle-404)))
 
 
