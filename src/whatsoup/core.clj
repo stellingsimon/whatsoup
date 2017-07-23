@@ -40,10 +40,15 @@
                                        :* [:any-of :property/gemüse :property/fleisch]]
                                       ["Einlage" :* :property/knusprig]]}))
 
-
-(defn update-ingredient! [action ingredient-idx]
-  (when-let [recipe (session/get :recipe)]
-    (session/put! :recipe (web/handle-update action (:meal-generator system) recipe (Integer/parseInt ingredient-idx)))))
+(defn ingredient-route [action]
+  (GET [(str "/" (name action) "/:idx") :idx #"[0-9]+"] [idx]
+    (let [recipe (session/get :recipe)
+          mg (:meal-generator system)
+          ingredient-idx (Integer/parseInt idx)]
+      (when recipe
+        (->> (web/handle-update action mg recipe ingredient-idx)
+             (session/put! :recipe)))
+      (response/redirect "/"))))
 
 (defroutes app-routes
            (GET "/" []
@@ -54,15 +59,9 @@
            (GET "/new" []
              (session/put! :recipe (web/generate-meal (:meal-generator system) ex-recipe))
              (response/redirect "/"))
-           (GET ["/new/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             (update-ingredient! :new ingredient-idx)
-             (response/redirect "/"))
-           (GET ["/add/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             (update-ingredient! :add ingredient-idx)
-             (response/redirect "/"))
-           (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
-             (update-ingredient! :remove ingredient-idx)
-             (response/redirect "/"))
+           (ingredient-route :new)
+           (ingredient-route :add)
+           (ingredient-route :remove)
            (GET "/about" [] (web/about-page))
            (route/not-found (web/handle-404)))
 
