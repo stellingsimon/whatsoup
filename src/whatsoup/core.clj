@@ -3,13 +3,13 @@
             [com.stuartsierra.component :as component]
             [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
-            [ring.middleware.session.memory :refer [memory-store]]
             [noir.session :as session]
             [noir.response :as response]
+            [ring.middleware.session.memory :refer [memory-store]]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [whatsoup.food-kb :as kb]
-            [whatsoup.web :as web]
             [whatsoup.meal-generator :as meal-generator]
+            [whatsoup.web :as web]
             [whatsoup.util :as util]))
 
 (defn production-system [config-file]
