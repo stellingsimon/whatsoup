@@ -87,11 +87,8 @@
     [(str (:recipe/name recipe) ", v" interactions-count) (render-action :new "refresh")]
     (render-recipe-table (:recipe/ingredients recipe))))
 
-; TODO: (2017-07-18, sst) match-ingredients should really do all the work here
 (defn generate-meal [mg recipe]
-  (->> recipe
-       (meal-generator/with-candidates mg)
-       (meal-generator/match-ingredients mg)))
+  (meal-generator/match-ingredients mg recipe))
 
 (defn handle-update [action mg recipe idx]
   (case action

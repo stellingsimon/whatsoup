@@ -89,8 +89,7 @@
         "food-compatibility-matrix lookup works")))
 
 (deftest -match-ingredients
-  (let [recipe (->> (spec/conform ::mg/recipe ex-recipe)
-                    (with-candidates test-mg))
+  (let [recipe (spec/conform ::mg/recipe ex-recipe)
         selected-foods #{:food/lauch}
         food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
                                    [:food/lauch :food/schweinefleisch] 5.0}]

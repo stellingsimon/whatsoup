@@ -137,7 +137,7 @@
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
   ([mg recipe]
-   (match-ingredients mg recipe 100))
+   (match-ingredients mg (with-candidates mg recipe) 100))
   ([mg recipe max-loops]
    (when (zero? max-loops)
      (throw (IllegalStateException. (str "aborted unsafe loop, recipe: " recipe))))
