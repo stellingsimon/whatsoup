@@ -26,7 +26,7 @@
 
 (deftest -score
   (is (almost= 1.0 (score {} :food/broccoli #{})))
-  (is (almost= 1.0 (score {} :food/broccoli #{:food/lauch})))
-  (is (almost= 0.1 (score {} :food/broccoli #{:food/broccoli})))
+  (is (almost= 0.0 (score {} :food/broccoli #{:food/lauch})))
+  (is (almost= 0.0 (score {} :food/broccoli #{:food/broccoli})))
   (is (almost= 0.5 (score test-kb :food/broccoli #{:food/lauch})))
   (is (almost= 5.0 (score test-kb :food/schweinefleisch #{:food/lauch}))))

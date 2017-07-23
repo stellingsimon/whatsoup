@@ -75,7 +75,9 @@
           b-properties (get-in kb [:food-property-catalog food-b])
           weights-both (sum-weights (set/intersection a-properties b-properties))
           weights-any (sum-weights (set/union a-properties b-properties))]
-      (- 1 (/ weights-both weights-any)))))
+      (if (zero? weights-any)
+        0
+        (- 1 (/ weights-both weights-any))))))
 
 (defn score [kb candidate-food selected-foods]
   "computes a numerical value reflecting how well the candidate-food fits the previously selected-foods"
