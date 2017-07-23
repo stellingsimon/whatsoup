@@ -3,7 +3,6 @@
             [com.stuartsierra.component :as component]
             [compojure.core :refer :all]
             [compojure.route :as route]
-            [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.middleware.session.memory :refer [memory-store]]
             [noir.session :as session]
@@ -64,12 +63,9 @@
            (GET ["/remove/:ingredient-idx" :ingredient-idx #"[0-9]+"] [ingredient-idx]
              (update-ingredient! :remove ingredient-idx)
              (response/redirect "/"))
-           (GET "/about" []
-             (web/about-page))
+           (GET "/about" [] (web/about-page))
            (route/not-found (web/handle-404)))
 
-; TODO: (2017-07-19, sst) for some inexplicable reason, we loose session state after a few seconds if anti-forgery is enabled. Investigate why...
-(def mangled-site-defaults (merge site-defaults {:security {:anti-forgery false}}))
 (def app (-> app-routes
-             (session/wrap-noir-session {:store (memory-store)})
-             (wrap-defaults mangled-site-defaults)))
+             (session/wrap-noir-session*)
+             (wrap-defaults site-defaults)))

@@ -5,7 +5,6 @@
             [whatsoup.test-util :refer :all]))
 
 (def test-kb
-  ; TODO: (2017-07-16, sst) component/start probably not warranted here.
   (component/start
     (->FoodKnowledgeBase
       {:food-catalog              [{:food/name       :food/kartoffel

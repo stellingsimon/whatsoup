@@ -7,7 +7,6 @@
             [whatsoup.food-kb-test :refer [test-kb]]
             [whatsoup.test-util :refer :all]))
 
-; TODO: (2017-07-15, sst) leverage spec to generate arbitrary recipes for us
 (def ex-recipe
   {:recipe/name        "Püree-Suppe"
    :recipe/ingredients [[:= :food/lauch]
@@ -28,7 +27,6 @@
                       ["Einlage"]]})
 
 (def test-mg
-  ; TODO: (2017-07-16, sst) component/start probably not warranted here.
   (component/start
     (->MealGenerator test-kb first)))
 
