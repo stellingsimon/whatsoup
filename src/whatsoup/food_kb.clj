@@ -40,7 +40,9 @@
             (assoc this :food-compatibility-matrix food-compatibility-matrix)
             (assoc this :food-property-catalog (food-property-catalog food-catalog))
             (assoc this :property-weights (property-weights (:property-catalog this)))
-            (dissoc this :config)))))
+            (dissoc this :config))))
+
+  (stop [this] this))
 
 (defn expand-catalog [catalog]
   "{:a #{:b :c}} -> {:food/name :food/a
