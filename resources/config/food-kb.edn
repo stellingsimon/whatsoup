@@ -1,7 +1,7 @@
 {:food-catalog
- {:kartoffel-mehligkochend #{:gemüse :stärkehaltig :geschmacks-verfeinernd :weichkochend}
-  :kartoffel-festkochend   #{:gemüse :stärkehaltig :geschmacks-verfeinernd :festkochend}
-  :süsskartoffel           #{:gemüse :stärkehaltig :geschmacks-verfeinernd :festkochend}
+ {:kartoffel-mehligkochend #{:gemüse :stärkehaltig :geschmacks-verfeinernd :weichkochend :kartoffel}
+  :kartoffel-festkochend   #{:gemüse :stärkehaltig :geschmacks-verfeinernd :festkochend :kartoffel}
+  :süsskartoffel           #{:gemüse :stärkehaltig :geschmacks-verfeinernd :festkochend :kartoffel}
   :karotten                #{:gemüse :stärkehaltig :geschmacks-definierend :festkochend}
   :knollensellerie         #{:gemüse :umami}
   :kohlrabi                #{:gemüse :kohl :geschmacks-definierend :festkochend}

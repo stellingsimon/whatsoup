@@ -26,9 +26,7 @@
 (spec/def :recipe/name string?)
 (spec/def ::recipe (spec/keys :req [:recipe/name :recipe/ingredients]))
 
-(defrecord MealGenerator [food-kb picker]
-  component/Lifecycle
-  (start [this] this))                                      ; TODO: (2017-07-19, sst): there's a default implementation, why is this needed?
+(defrecord MealGenerator [food-kb picker])
 
 (defn create-meal-generator []
   (component/using (map->MealGenerator {}) [:food-kb :picker]))
