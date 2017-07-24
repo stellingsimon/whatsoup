@@ -71,7 +71,7 @@
   [:table#meal-ingredients
    [:tr
     [:th ""]
-    [:th "Zutaten"]
+    [:th#center-column-header "Zutaten"]
     [:th]]
    (for [{:keys [role selected-foods] :as ingredient} ingredients]
      [:tr

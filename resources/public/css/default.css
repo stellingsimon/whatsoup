@@ -56,12 +56,16 @@ hr {
     vertical-align: text-top;
 }
 
+#center-column-header {
+    min-width: 11em;
+}
+
 table {
     border-collapse: collapse;
 }
 
 td, th {
-    padding: 0.5em;
+    padding: 0.3em;
     font-size: large;
     /*border: 1px solid black;*/
 }
