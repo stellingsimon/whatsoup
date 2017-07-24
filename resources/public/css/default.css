@@ -52,6 +52,11 @@ hr {
     text-align: left;
 }
 
+#meal-ingredients span {
+    display: block;
+    width: 100%;
+}
+
 #meal-ingredients tr {
     vertical-align: text-top;
 }

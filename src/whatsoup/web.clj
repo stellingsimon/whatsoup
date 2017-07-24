@@ -29,11 +29,15 @@
        (map str/capitalize)
        (str/join " ")))
 
-(defn render-foods [foods]
-  (cond
-    (empty? foods) "-"
-    (= 1 (count foods)) (render-food (first foods))
-    :else [:ul (for [f foods] [:li (render-food f)])]))
+(defn render-foods [foods candidate-count]
+  (let [tooltip {:title (case candidate-count
+                          0 "no other options"
+                          1 "1 other option"
+                          (str candidate-count " other options"))}]
+    (cond
+      (empty? foods) [:span tooltip "-"]
+      (= 1 (count foods)) [:span tooltip (render-food (first foods))]
+      :else [:ul tooltip (for [f foods] [:li (render-food f)])])))
 
 (defn render-action
   ([action icon]
@@ -73,10 +77,10 @@
     [:th ""]
     [:th#center-column-header "Zutaten"]
     [:th]]
-   (for [{:keys [role selected-foods] :as ingredient} ingredients]
+   (for [{:keys [role selected-foods candidate-foods] :as ingredient} ingredients]
      [:tr
       [:td role]
-      [:td (render-foods selected-foods)]
+      [:td (render-foods selected-foods (count candidate-foods))]
       [:td
        (ingredient-action :new ingredient)
        (ingredient-action :remove ingredient)
