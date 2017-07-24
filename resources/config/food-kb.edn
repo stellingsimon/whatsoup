@@ -1,5 +1,6 @@
 {:food-catalog
- {:kartoffel-mehligkochend #{:gemüse :stärkehaltig :geschmacks-verfeinernd :weichkochend :kartoffel}
+ {:reis                    #{:gemüse :stärkehaltig :geschmacks-verfeinernd :weichkochend}
+  :kartoffel-mehligkochend #{:gemüse :stärkehaltig :geschmacks-verfeinernd :weichkochend :kartoffel}
   :kartoffel-festkochend   #{:gemüse :stärkehaltig :geschmacks-verfeinernd :festkochend :kartoffel}
   :süsskartoffel           #{:gemüse :stärkehaltig :geschmacks-verfeinernd :festkochend :kartoffel}
   :karotten                #{:gemüse :stärkehaltig :geschmacks-definierend :festkochend}
@@ -48,6 +49,7 @@
   :kürbis                  #{:gemüse :stärkehaltig :geschmacks-definierend}
   :rosenkohl               #{:gemüse :stärkehaltig :kohl :festkochend}
   :wirsing                 #{:gemüse :kohl}
+  :spargel                 #{:gemüse}
 
   :basilikum               #{:gewürz :kräuter}
   :dill                    #{:gewürz :kräuter}
@@ -72,9 +74,19 @@
   :milch                   #{:eiweiss-haltig :milchprodukt :geschmacks-verfeinernd :umami}
   :rahm                    #{:eiweiss-haltig :milchprodukt :geschmacks-verfeinernd :umami}
   :mascarpone              #{:eiweiss-haltig :milchprodukt :käse :geschmacks-verfeinernd :umami}
-  :mozarella               #{:eiweiss-haltig :milchprodukt :käse :geschmacks-verfeinernd :umami}}
+  :mozarella               #{:eiweiss-haltig :milchprodukt :käse :geschmacks-verfeinernd :umami}
+
+  :reismehl                #{:mehl}
+  :weissmehl               #{:mehl}
+
+  :geflügelfond            #{:fond}
+  :kalbsfond               #{:fond}}
  ; ,,, #{:fleisch :umami},,, #{:dekoration}
 
  :food-compatibility-matrix
- {[:food/broccoli :food/lauch] 0.5
-  [:food/lauch :food/tomate]   100.0}}
+ {[:food/broccoli :food/lauch]       0.5
+  [:food/tomate :food/lauch]         100.0
+  [:food/tomate :food/milch]         0.1
+  [:food/tomate :food/rahm]          0.1
+  [:food/cherry-tomaten :food/milch] 0.1
+  [:food/cherry-tomaten :food/rahm]  0.1}}

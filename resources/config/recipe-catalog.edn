@@ -7,13 +7,26 @@
                          := [:all-of :property/gemüse :property/stärkehaltig]]
                         ["Weitere Zutaten"
                          :* [:any-of :property/gemüse :property/fleisch]]
-                        ["Einlage" :* :property/knusprig]]}
-  {:recipe/name        "Pürierte Suppe"
+                        ["Einlage" :* [:any-of :property/festkochend :property/dekoration]]]}
+  {:recipe/name        "Würzige Creme-Suppe"
    :recipe/ingredients [[:= :food/lauch]
-                        [:= :food/zwiebel]
-                        [:= :food/bouillon]
-                        ["Püreebasis"
-                         := [:all-of :property/gemüse :property/stärkehaltig]]
+                        [:= [:any-of :food/kalbsfond :food/geflügelfond :food/beliebiger-fond]]
+                        [:= [:any-of :food/reismehl :food/weissmehl]]
+                        [:= :food/milch]
+                        [:= :food/rahm]
+                        ["Primäre Zutat"
+                         := [:any-of :property/geschmacks-definierend :property/umami :property/pilz]]
                         ["Weitere Zutaten"
-                         :* [:any-of :property/gemüse :property/fleisch]]
-                        ["Einlage" :* :property/knusprig]]}]}
+                         :* [:any-of :property/umami :property/gemüse :property/fleisch]]
+                        ["Einlage" :* [:any-of :property/festkochend :property/dekoration]]]}
+  {:recipe/name        "Feine Creme-Suppe"
+   :recipe/ingredients [[:= :food/lauch]
+                        [:= :food/geflügelfond]
+                        [:= [:any-of :food/reismehl :food/weissmehl]]
+                        [:= :food/milch]
+                        [:= :food/rahm]
+                        ["Primäre Zutat"
+                         := :property/geschmacks-verfeinernd]
+                        ["Weitere Zutaten"
+                         :* [:any-of :property/geschmacks-verfeinernd :property/weichkochend]]
+                        ["Einlage" :* [:any-of :property/festkochend :property/dekoration]]]}]}
