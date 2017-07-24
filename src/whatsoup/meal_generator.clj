@@ -174,5 +174,6 @@
         (assoc-in recipe [:recipe/ingredients idx] ingredient)))
 
 (defn exchange-ingredient-foods [mg recipe idx]
-  (let [removed (update-in recipe [:recipe/ingredients idx] deselect-all-foods)]
-    (add-food-to-ingredient mg removed idx)))
+  (let [food-count (count (get-in recipe [:recipe/ingredients idx :selected-foods]))
+        removed (update-in recipe [:recipe/ingredients idx] deselect-all-foods)]
+    (nth (iterate #(add-food-to-ingredient mg % idx) removed) food-count)))
