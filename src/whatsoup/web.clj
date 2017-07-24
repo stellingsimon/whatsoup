@@ -1,5 +1,6 @@
 (ns whatsoup.web
   (:require [clojure.java.shell :refer [sh]]
+            [clojure.pprint :refer [pprint]]
             [clojure.spec.alpha :as spec]
             [clojure.string :as str]
             [hiccup.core :as h :refer :all]
@@ -127,3 +128,13 @@
 
 (defn handle-404 []
   (render-page "404 - We're out of soup." nil))
+
+(defn dump-config [system]
+  (html [:pre (with-out-str
+                (println "Recipes:")
+                (println "--------")
+                (pprint (:recipe-catalog (:meal-generator system)))
+                (println "")
+                (println "Food-Catalog:")
+                (println "-------------")
+                (pprint (:food-catalog (:food-kb system))))]))

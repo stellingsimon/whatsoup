@@ -52,6 +52,7 @@
            (ingredient-route :add)
            (ingredient-route :remove)
            (GET "/about" [] (web/about-page))
+           (GET "/dump" [] (web/dump-config system))
            (route/not-found (web/handle-404)))
 
 (def app (-> app-routes
