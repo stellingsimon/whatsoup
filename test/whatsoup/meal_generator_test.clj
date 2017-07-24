@@ -17,20 +17,14 @@
                         ["Weitere Zutaten"
                          :* [:any-of :property/gemüse :property/fleisch]]
                         ["Einlage" :* :property/knusprig]]})
-(def ex-meal
-  {:meal/name        "Püree-Suppe"
-   :meal/ingredients [["" :food/lauch]
-                      ["" :food/zwiebel]
-                      ["" :food/bouillon]
-                      ["Püreebasis" :food/kartoffel]
-                      ["Weitere Zutaten" :food/schweinefleisch]
-                      ["Einlage"]]})
 
 (def test-mg
   (component/start
-    (->MealGenerator test-kb first)))
+    (map->MealGenerator {:food-kb test-kb
+                         :recipe-catalog [ex-recipe]
+                         :picker first})))
 
-(def empty-mg (->MealGenerator {} first))
+(def empty-mg (->MealGenerator {} first {}))
 
 (deftest -normalize-constraint
   (is (= {:op :all-of :elems [:food/bouillon]}
@@ -43,21 +37,21 @@
 (deftest -with-candidates
   (let [recipe (spec/conform ::mg/recipe ex-recipe)]
     (is (= (range (count (:recipe/ingredients ex-recipe)))  ; (0 1 2 ...)
-           (map :idx (:recipe/ingredients (with-candidates test-mg recipe))))
+           (map :idx (:recipe/ingredients (inline-candidates test-mg recipe))))
         "idx-assignment starting at 0 counting up")
     (is (every?
           #(contains? #{:any-of :all-of} (get-in % [:constraint :op]))
-          (:recipe/ingredients (with-candidates test-mg recipe)))
+          (:recipe/ingredients (inline-candidates test-mg recipe)))
         "constraint-normalization performed")
     (is (= [#{:food/lauch}
-              #{:food/zwiebel}
-              #{:food/bouillon}
-              #{:food/kartoffel}
-              #{:food/broccoli
-                :food/kartoffel
-                :food/schweinefleisch}
-              #{}]
-           (mapv :candidate-foods (:recipe/ingredients (with-candidates test-mg recipe))))
+            #{:food/zwiebel}
+            #{:food/bouillon}
+            #{:food/kartoffel}
+            #{:food/broccoli
+              :food/kartoffel
+              :food/schweinefleisch}
+            #{}]
+           (mapv :candidate-foods (:recipe/ingredients (inline-candidates test-mg recipe))))
         "candidates present")))
 
 (deftest -satisfying-foods
@@ -72,7 +66,7 @@
 
 (deftest -match-ingredient
   (let [ingredients (->> (spec/conform ::mg/recipe ex-recipe)
-                         (with-candidates test-mg)
+                         (inline-candidates test-mg)
                          (:recipe/ingredients))
         selected-foods #{:food/lauch}
         puree-base (first (filter #(= "Püreebasis" (:role %)) ingredients))
@@ -87,8 +81,7 @@
         "food-compatibility-matrix lookup works")))
 
 (deftest -match-ingredients
-  (let [recipe (spec/conform ::mg/recipe ex-recipe)
-        selected-foods #{:food/lauch}
+  (let [selected-foods #{:food/lauch}
         food-compatibility-matrix {[:food/broccoli :food/lauch]        0.1
                                    [:food/lauch :food/schweinefleisch] 5.0}]
     (is (= [#{:food/lauch}
@@ -97,4 +90,4 @@
             #{:food/kartoffel}
             #{:food/schweinefleisch}
             #{}]                                            ; no match for :property/knusprig
-           (map :selected-foods (:recipe/ingredients (match-ingredients test-mg recipe)))))))
+           (map :selected-foods (:recipe/ingredients (match-ingredients test-mg ex-recipe)))))))

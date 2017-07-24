@@ -87,8 +87,10 @@
     [(str (:recipe/name recipe) ", v" interactions-count) (render-action :new "refresh")]
     (render-recipe-table (:recipe/ingredients recipe))))
 
-(defn generate-meal [mg recipe]
-  (meal-generator/match-ingredients mg recipe))
+(defn generate-meal [mg]
+  (let [pick (:picker mg)
+        recipes (:recipe-catalog mg)]
+    (meal-generator/match-ingredients mg (pick recipes))))
 
 (defn handle-update [action mg recipe idx]
   (case action

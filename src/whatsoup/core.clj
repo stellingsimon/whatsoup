@@ -12,12 +12,13 @@
             [whatsoup.web :as web]
             [whatsoup.util :as util]))
 
-(defn production-system [config-file]
-  (component/system-map :food-kb (kb/create-food-kb config-file)
-                        :meal-generator (meal-generator/create-meal-generator)
+(defn production-system [food-kb-data recipe-data]
+  (component/system-map :food-kb (kb/create-food-kb food-kb-data)
+                        :meal-generator (meal-generator/create-meal-generator recipe-data)
                         :picker util/pick-random))
 
-(def system (production-system "resources/config/food-kb.edn"))
+(def system (production-system "resources/config/food-kb.edn"
+                               "resources/config/recipe-catalog.edn"))
 
 (defn -main [& args]
   (alter-var-root #'system component/start-system))
@@ -27,18 +28,6 @@
 
 ; TODO: (2017-07-18, sst) As soon as the namespaces are reloaded, the system is reset. How to fix that properly?
 (ring-init)
-
-(def ex-recipe
-  (spec/conform ::meal-generator/recipe
-                {:recipe/name        "Püree-Suppe"
-                 :recipe/ingredients [[:= :food/lauch]
-                                      [:= :food/zwiebel]
-                                      [:= :food/bouillon]
-                                      ["Püreebasis"
-                                       := [:all-of :property/gemüse :property/stärkehaltig]]
-                                      ["Weitere Zutaten"
-                                       :* [:any-of :property/gemüse :property/fleisch]]
-                                      ["Einlage" :* :property/knusprig]]}))
 
 (defn ingredient-route [action]
   (GET [(str "/" (name action) "/:idx") :idx #"[0-9]+"] [idx]
@@ -57,7 +46,7 @@
                    (web/display-meal recipe (session/get :interactions-count)))
                (response/redirect "/new")))
            (GET "/new" []
-             (session/put! :recipe (web/generate-meal (:meal-generator system) ex-recipe))
+             (session/put! :recipe (web/generate-meal (:meal-generator system)))
              (response/redirect "/"))
            (ingredient-route :new)
            (ingredient-route :add)

@@ -1,6 +1,7 @@
 (ns whatsoup.meal-generator
   "Generates a meal from a recipe, satisfying its constraints on the ingredients."
-  (:require [clojure.set :as set]
+  (:require [clojure.edn :as edn]
+            [clojure.set :as set]
             [clojure.spec.alpha :as spec]
             [com.stuartsierra.component :as component]
             [whatsoup.food-kb :as kb]
@@ -26,10 +27,21 @@
 (spec/def :recipe/name string?)
 (spec/def ::recipe (spec/keys :req [:recipe/name :recipe/ingredients]))
 
-(defrecord MealGenerator [food-kb picker])
+(defrecord MealGenerator [food-kb picker config]
+  component/Lifecycle
 
-(defn create-meal-generator []
-  (component/using (map->MealGenerator {}) [:food-kb :picker]))
+  (start [this]
+    (let [recipe-catalog (:recipe-catalog config)]
+      (assoc this :recipe-catalog recipe-catalog)
+      (dissoc this :config)))
+
+  (stop [this] this))
+
+(defn create-meal-generator [config-file]
+  (let [config (-> (slurp config-file)
+                   (edn/read-string))]
+    (-> (map->MealGenerator (select-keys config [:recipe-catalog]))
+        (component/using [:food-kb :picker]))))
 
 (defn normalize-constraint
   "takes a spec-conformed constraint and returns a map with only :op and :elems"
@@ -41,7 +53,7 @@
 
     (= :combined constraint-type)
     {:op    (:op detail)
-     :elems (into [] (map second (concat [(:first detail)] (:rest detail))))}))
+     :elems (mapv second (concat [(:first detail)] (:rest detail)))}))
 
 ;; basic algorithm:
 ;; - compute candidates for each ingredient
@@ -65,7 +77,7 @@
       (= :any-of op) (apply set/union food-sets)
       :else (throw (RuntimeException. (str "Unexpected op: " op " in constraint: " normalized-constraint))))))
 
-(defn with-candidates
+(defn inline-candidates
   "initializes the keys used in the computation of the food selection"
   [mg recipe]
   (letfn [(merge-idx [ingredients]
@@ -123,7 +135,7 @@
        (index-with #(kb/score (:food-kb mg) % selected-foods))
        (sample-foods)
        (sort-by #(kb/score (:food-kb mg) % selected-foods) #(> %1 %2))
-       ((:picker mg) ,,,)
+       ((:picker mg),,,)
        (select-food ingredient)))
 
 (defn match-ingredient [mg ingredient selected-foods]
@@ -137,7 +149,10 @@
 (defn match-ingredients
   "matches up ingredients with foods that satisfy the given constraints and fit well with the other selected foods"
   ([mg recipe]
-   (match-ingredients mg (with-candidates mg recipe) 100))
+   (as-> recipe r
+         (spec/conform ::recipe r)
+         (inline-candidates mg r)
+         (match-ingredients mg r 100)))
   ([mg recipe max-loops]
    (when (zero? max-loops)
      (throw (IllegalStateException. (str "aborted unsafe loop, recipe: " recipe))))

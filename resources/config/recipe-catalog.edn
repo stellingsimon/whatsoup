@@ -1,0 +1,19 @@
+{:recipe-catalog
+ [{:recipe/name        "Püree-Suppe"
+   :recipe/ingredients [[:= :food/lauch]
+                        [:= :food/zwiebel]
+                        [:= :food/bouillon]
+                        ["Püreebasis"
+                         := [:all-of :property/gemüse :property/stärkehaltig]]
+                        ["Weitere Zutaten"
+                         :* [:any-of :property/gemüse :property/fleisch]]
+                        ["Einlage" :* :property/knusprig]]}
+  {:recipe/name        "Pürierte Suppe"
+   :recipe/ingredients [[:= :food/lauch]
+                        [:= :food/zwiebel]
+                        [:= :food/bouillon]
+                        ["Püreebasis"
+                         := [:all-of :property/gemüse :property/stärkehaltig]]
+                        ["Weitere Zutaten"
+                         :* [:any-of :property/gemüse :property/fleisch]]
+                        ["Einlage" :* :property/knusprig]]}]}
